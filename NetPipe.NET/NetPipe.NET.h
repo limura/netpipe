@@ -62,6 +62,7 @@ namespace NetPipeDotNET {
 
 	// void addReadFD(int fd, size_t bufSize = 4096);
 	bool write(System::String ^portName, array<System::Byte> ^buf);
+	bool write(System::String ^portName, array<System::Byte> ^buf, int length);
 	bool write(System::String ^portName, System::String ^str);
 	bool commit(System::String ^portName);
 	void exit();
@@ -116,6 +117,7 @@ namespace NetPipeDotNET {
 	~MainLoop();
 	!MainLoop();
 	void addServiceManager(NetPipeDotNET::ServiceManager ^sm);
+	void run(int usec);
 	void run();
     };
 }
