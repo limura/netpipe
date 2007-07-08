@@ -43,6 +43,13 @@ namespace NetPipeDotNET {
 	System::Runtime::InteropServices::Marshal::FreeHGlobal(System::IntPtr((void *)name));
 	return ret;
     }
+    bool PipeManager::write(System::String ^portName, array<System::Byte> ^buf, int length){
+	char *name = static_cast<char*>((System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(portName)).ToPointer());
+	pin_ptr<System::Byte> pbuf = &buf[0];
+	bool ret = original->write(name, (char *)pbuf, length);
+	System::Runtime::InteropServices::Marshal::FreeHGlobal(System::IntPtr((void *)name));
+	return ret;
+    }
     bool PipeManager::write(System::String ^portName, System::String ^str){
 	char *name = static_cast<char*>((System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(portName)).ToPointer());
 	char *mStr = static_cast<char*>((System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(str)).ToPointer());

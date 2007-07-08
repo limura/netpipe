@@ -76,7 +76,7 @@ namespace NetPipe {
 	virtual ~MainLoop();
 
 	void addServiceManager(ServiceManager *sm);
-	void run();
+	void run(int usec = 0);
     };
 };
 

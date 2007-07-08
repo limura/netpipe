@@ -82,10 +82,15 @@ namespace NetPipe {
 	serviceManagerList.push_back(sm);
     }
 
-    void MainLoop::run(){
-	openAcceptPort();
-	while(selector->run(0)){
-	    ;
+    void MainLoop::run(int usec){
+	if(upnp == NULL)
+	    openAcceptPort();
+	if(usec <= 0){
+	    while(selector->run(0)){
+		;
+	    }
+	}else{
+	    selector->run(usec);
 	}
     }
 

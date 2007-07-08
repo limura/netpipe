@@ -48,8 +48,12 @@ namespace NetPipeDotNET {
 	    UmMainLoop->addServiceManager(sm->getUnmanagedObject());
 	}
     }
+    void MainLoop::run(int usec){
+	if(UmMainLoop != NULL)
+	    UmMainLoop->run(usec);
+    }
     void MainLoop::run(){
 	if(UmMainLoop != NULL)
-	    UmMainLoop->run();
+	    UmMainLoop->run(0);
     }
 }; /* namespace NetPipeDotNET */

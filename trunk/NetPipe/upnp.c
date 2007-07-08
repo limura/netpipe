@@ -643,7 +643,7 @@ cookai_upnp *upnp_listen_stream_with_local(int port){
     char portBuf[6], *portStr, *ipaddr;
     cookai_upnp *upnp;
 
-    if(getenv("UPNP_ENABLE") != NULL){
+    if(getenv("UPNP_DISABLE") == NULL){
 	upnp = upnp_listen_stream(port);
 	if(upnp != NULL)
 	    return upnp;
