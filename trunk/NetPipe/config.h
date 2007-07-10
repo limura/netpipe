@@ -135,7 +135,7 @@
 #define DLL_EXPORT /* */
 #endif
 
-#ifdef __Linux__
+#ifdef __linux__
 #define HAVE_OPENSSL_SHA_H
 #define HAVE_SHA_CTX
 #define HAVE_SYS_TIME_H
