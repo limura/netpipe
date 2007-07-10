@@ -37,9 +37,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef HAVE_SYSLOG_H
-#include <syslog.h>
-#endif
+//#ifdef HAVE_SYSLOG_H
+//#include <syslog.h>
+//#endif
 
 namespace NetPipe {
 
@@ -163,9 +163,9 @@ printf("DELETING Service: %p\n", service);
 	WritePort *wp = writePortMap[portName];
 	if(wp == NULL || wp->buf == NULL){
 printf("  can not SEND on PortName \"%s\" not found WritePortMap.\n", portName);
-#ifdef HAVE_SYSLOG_H
-syslog(LOG_LOCAL3, "can not SEND to \"%s\"  %s", portName, getGlobalIP4Addr());
-#endif
+//#ifdef HAVE_SYSLOG_H
+//syslog(LOG_LOCAL3, "can not SEND to \"%s\"  %s", portName, getGlobalIP4Addr());
+//#endif
 	    return false;
 	}
 	int pipePathLen = (int)strlen(pipePath);

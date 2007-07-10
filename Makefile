@@ -22,7 +22,7 @@
  # SUCH DAMAGE.
  # $Id: Makefile 41 2007-07-02 09:10:33Z  $
 
-MAKE=gmake
+MAKE=make
 
 all:
 	cd NetPipe && $(MAKE)
