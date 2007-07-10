@@ -133,7 +133,6 @@ namespace NetPipe {
 
 	ServiceString[0] = '\0';
 
-#if 0 /* ‚Æ‚è‚ ‚¦‚¸¡‰ñ‚ÌŽÀŒ±‚Å‚Í‚±‚Ìî•ñ‚ÍŽg‚í‚ê‚È‚¢ */
 	if(readPortMap.size() > 0){
 	    strncat(ServiceString, "i\t", sizeof(ServiceString));
 	    strncat(ServiceString, serviceName, sizeof(ServiceString));
@@ -153,7 +152,6 @@ namespace NetPipe {
 	    }
 	    strncat(ServiceString, "\n", sizeof(ServiceString));
 	}
-#endif
 
 	strncat(ServiceString, "p\t", sizeof(ServiceString));
 	strncat(ServiceString, serviceName, sizeof(ServiceString));

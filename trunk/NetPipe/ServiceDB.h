@@ -35,10 +35,8 @@
 
 #define SERVICE_MAP_ENV "NETPIPE_SERVICE_MAP_URL"
 #define SERVICE_UPDATE_ENV "NETPIPE_SERVICE_UPDATE_URL"
-#define STATIC_SERVICE_MAP_URL "http://uirou.no-ip.org/s/s.cgi"
-#define STATIC_SERVICE_UPDATE_URL "http://uirou.no-ip.org/s/s.cgi"
-//#define STATIC_SERVICE_MAP_URL "http://172.16.2.33:8472/s.fcgi"
-//#define STATIC_SERVICE_UPDATE_URL "http://172.16.2.33:8472/s.fcgi"
+#define STATIC_SERVICE_MAP_URL "http://nazca.naist.wide.ad.jp/s/s.cgi"
+#define STATIC_SERVICE_UPDATE_URL "http://nazca.naist.wide.ad.jp/s/s.cgi"
 
 namespace NetPipe {
     class ServiceDB {
