@@ -139,7 +139,7 @@ namespace NetPipe {
 #else
 	struct timeval tv;
 	if(gettimeofday(&tv, NULL) == 0){
-	    p += sprintf(p, "gettimeofday: %d.%06d\n\n", tv.tv_sec, tv.tv_usec);
+	    p += sprintf(p, "gettimeofday: %ld.%06ld\n\n", tv.tv_sec, tv.tv_usec);
 	}
 #endif
 	p += sprintf(p, "upnp->sock: %d\n", mainLoop->upnp->sock);

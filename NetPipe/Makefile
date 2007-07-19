@@ -1,7 +1,7 @@
  # Copyright (c) 2007 IIMURA Takuji. All rights reserved.
  #
  # Redistribution and use in source and binary forms, with or without
- # modification, are permitted provided that the following conditions
+ # modification, are permitted provided that the following conditionscc
  # are met:
  # 1. Redistributions of source code must retain the above copyright
  #    notice, this list of conditions and the following disclaimer.
@@ -27,7 +27,7 @@ CC = gcc
 AR = ar
 RANLIB = ranlib
 
-SRCS = Acceptor.cpp StreamBuffer.cpp
+SRCS = StreamBuffer.cpp
 SRCS += Kicker.cpp MainLoop.cpp ServiceDB.cpp
 SRCS += ServiceManager.cpp FDWatcher.cpp PipeManager.cpp
 SRCS += SysDataHolder.cpp
