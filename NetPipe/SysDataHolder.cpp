@@ -102,9 +102,9 @@ namespace NetPipe {
 	    }
 #endif
 	    if(upnp->wan_ipaddr != NULL && upnp->wan_port != NULL){
-		DPRINTF(10, ("SysData listning on %s:%s with UPNP\n", upnp->wan_ipaddr, upnp->wan_port));
+		DPRINTF(10, ("SysData listning on %s %s with UPNP (local port: %d)\n", upnp->wan_ipaddr, upnp->wan_port, upnp->local_port));
 	    }else if(upnp->local_ipaddr != NULL){
-		DPRINTF(10, ("SysData listning on %s:%d without upnp\n", upnp->local_ipaddr, upnp->local_port));
+		DPRINTF(10, ("SysData listning on %s %d without upnp\n", upnp->local_ipaddr, upnp->local_port));
 	    }
 	}
 	ServiceManager *sm = new ServiceManager("SystemData");

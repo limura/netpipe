@@ -84,6 +84,8 @@ namespace NetPipe {
 	    openAcceptPort();
 #if 1
 	FDWatcher *watcher = FDWatcher::getInstance();
+	if(watcher->startWatcher() == false)
+	    return;
 	do {
 	    watcher->invokeEvents(usec);
 	} while(usec <= 0);
@@ -373,6 +375,7 @@ namespace NetPipe {
 	    throw "can not get my IPaddr and portNumber";
 	}
 	DPRINTF(10, ("MainLoop lisning on %s %s %s\n", IPaddr, portStr, upnp->wan_ipaddr != NULL ? "with upnp" : "without upnp"));
+	DPRINTF(10, ("  local port: %d\n", upnp->local_port));
 
 #if 1
 	FDWatcher *watcher = FDWatcher::getInstance();
