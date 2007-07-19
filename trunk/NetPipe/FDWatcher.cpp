@@ -466,6 +466,8 @@ namespace NetPipe {
 	thread_mutex_unlock(&acceptQueueMutex);
 	thread_mutex_lock(&fdsetMutex);
 	FD_SET(fd, &read_fds);
+	if(fd > maxFDNum)
+	    maxFDNum = fd;
 	thread_mutex_unlock(&fdsetMutex);
     }
     void FDWatcher::addReciveQueue(int fd, FDReciver *reciver, void *userData){
@@ -481,6 +483,8 @@ namespace NetPipe {
 	thread_mutex_unlock(&recvQueueMutex);
 	thread_mutex_lock(&fdsetMutex);
 	FD_SET(fd, &read_fds);
+	if(fd > maxFDNum)
+	    maxFDNum = fd;
 	thread_mutex_unlock(&fdsetMutex);
     }
     void FDWatcher::addNoSizedReciveQueue(int fd, size_t bufSize, FDReciver *reciver, void *userData){
@@ -499,6 +503,8 @@ namespace NetPipe {
 	thread_mutex_unlock(&recvQueueMutex);
 	thread_mutex_lock(&fdsetMutex);
 	FD_SET(fd, &read_fds);
+	if(fd > maxFDNum)
+	    maxFDNum = fd;
 	thread_mutex_unlock(&fdsetMutex);
     }
 
@@ -517,6 +523,8 @@ namespace NetPipe {
 	thread_mutex_unlock(&sendQueueMutex);
 	thread_mutex_lock(&fdsetMutex);
 	FD_SET(fd, &write_fds);
+	if(fd > maxFDNum)
+	    maxFDNum = fd;
 	thread_mutex_unlock(&fdsetMutex);
     }
     void FDWatcher::addNoSizedSendQueue(int fd, char *buf, size_t size){
@@ -529,6 +537,8 @@ namespace NetPipe {
 	thread_mutex_unlock(&sendQueueMutex);
 	thread_mutex_lock(&fdsetMutex);
 	FD_SET(fd, &write_fds);
+	if(fd > maxFDNum)
+	    maxFDNum = fd;
 	thread_mutex_unlock(&fdsetMutex);
     }
 
