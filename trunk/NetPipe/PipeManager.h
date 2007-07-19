@@ -77,7 +77,7 @@ namespace NetPipe {
 	    PORT_ACTION_CLOSE = 1,
 	};
 	PipeManager(char *thisPipePath, char *serviceName, Service *service, MainLoop *ml);
-	~PipeManager();
+	virtual ~PipeManager();
 
 	void addReadFD(int fd, size_t bufsize = 4096);
 	bool write(char *portName, char *buf, size_t size);

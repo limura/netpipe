@@ -129,7 +129,7 @@ namespace NetPipe {
 	    if(recvRet != sizeof(readSize) || readSize <= 0)
 		return false;
 	    grow(readSize + 1);
-	    buf[readSize] = '\0'; // ˆê‰ž '\0' terminate ‚µ‚Ä‚¨‚­B‚È‚ñ‚ÄS—D‚µ‚¢‰´I
+	    buf[readSize] = '\0'; // $B".".".".(B '\0' terminate $B".".".".".".".".".(BB$B".".".".".".".(BS$B".(BD$B".".".".".".".(BI
 	}else{
 	    recvRet = recv(sock, p, readSize - (p - buf), 0);
 	    if(recvRet <= 0)
@@ -218,7 +218,7 @@ namespace NetPipe {
 	FD2SendBuffer::iterator fd2si;
 	FD2RecvBuffer::iterator fd2ri;
 	if(threadStarted == true){
-	    thread_cancel(&selectThreadID);
+	    thread_cancel(selectThreadID);
 	}
 	for(aqi = acceptQueue.begin(); aqi != acceptQueue.end(); aqi++){
 	    if(aqi->second != NULL && aqi->first >= 0)

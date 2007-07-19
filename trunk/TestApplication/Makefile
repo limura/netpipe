@@ -32,6 +32,7 @@ LOPTIONS = -pg
 
 CFLAGS += -I../NetPipe
 LOPTIONS += -L../NetPipe -lNetPipe
+LOPTIONS += -lpthread
 
 #CFLAGS += -D__Linux__
 #LOPTIONS += -lsocket -lnsl # for SunOS
