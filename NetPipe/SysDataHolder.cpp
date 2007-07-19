@@ -28,10 +28,8 @@
 #include "SysDataHolder.h"
 #include "MainLoop.h"
 #include "ServiceManager.h"
-#include "Acceptor.h"
 #include "net.h"
 #include "upnp.h"
-//#include "FDSelector.h"
 #include "FDWatcher.h"
 #include "tools.h"
 

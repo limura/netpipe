@@ -30,10 +30,6 @@
 
 #include "config.h"
 #include "StreamBuffer.h"
-#include "FDSelector.h"
-#include "StreamReader.h"
-#include "StreamWriter.h"
-#include "PortReader.h"
 #include "ServiceDB.h"
 #include "ServiceCreator.h"
 

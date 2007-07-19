@@ -26,11 +26,11 @@
  */
 
 #include "config.h"
+#include "MainLoop.h"
 #include "Kicker.h"
 #include "ServiceDB.h"
 #include "net.h"
 #include "StreamBuffer.h"
-#include "VersionChecker.h"
 #include "tools.h"
 
 #include <stdio.h>

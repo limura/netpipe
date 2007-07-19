@@ -30,7 +30,6 @@
 
 #include "MainLoop.h"
 #include "upnp.h"
-#include "Acceptor.h"
 #include "FDWatcher.h"
 
 namespace NetPipe {

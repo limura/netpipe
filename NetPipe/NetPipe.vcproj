@@ -176,10 +176,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\PortWriter.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ServiceDB.cpp"
 				>
 			</File>

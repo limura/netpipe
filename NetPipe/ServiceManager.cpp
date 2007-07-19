@@ -27,10 +27,7 @@
 
 #include "config.h"
 #include "ServiceManager.h"
-#include "FDSelector.h"
 #include "net.h"
-#include "Acceptor.h"
-#include "PortWriter.h"
 #include "PipeManager.h"
 #include "tools.h"
 

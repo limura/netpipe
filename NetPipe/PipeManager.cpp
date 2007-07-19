@@ -26,10 +26,7 @@
  */
 
 #include "PipeManager.h"
-//#include "FDSelector.h"
-#include "PortWriter.h"
 #include "Service.h"
-#include "FDReader.h"
 #include "MainLoop.h"
 
 #include "config.h"
