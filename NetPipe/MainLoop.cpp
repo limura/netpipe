@@ -27,7 +27,8 @@
 
 #include "config.h"
 #include "MainLoop.h"
-#include "FDSelector.h"
+//#include "FDSelector.h"
+#include "FDWatcher.h"
 #include "PipeManager.h"
 #include "ServiceDB.h"
 #include "net.h"
@@ -38,8 +39,8 @@
 #include "SysDataHolder.h"
 #include "VersionChecker.h"
 #include "PortWriter.h"
-
 #include "tools.h"
+
 #include <errno.h>
 extern int errno;
 #include <stdio.h>
@@ -50,9 +51,9 @@ extern int errno;
 namespace NetPipe {
 
     MainLoop::MainLoop(){
-	selector = new FDSelector();
-	if(selector == NULL)
-	    throw "FDSelector initialize failed.";
+	//selector = new FDSelector();
+	//if(selector == NULL)
+	//    throw "FDSelector initialize failed.";
 	serviceManagerList.clear();
 	activePipeMap.clear();
 	upnp = NULL;
@@ -70,8 +71,8 @@ namespace NetPipe {
     }
 
     MainLoop::~MainLoop(){
-	delete selector;
-	selector = NULL;
+	//delete selector;
+	//selector = NULL;
 	if(upnp != NULL)
 	    upnp_close(upnp);
 	if(log_fp != NULL)
@@ -85,6 +86,12 @@ namespace NetPipe {
     void MainLoop::run(int usec){
 	if(upnp == NULL)
 	    openAcceptPort();
+#if 1
+	FDWatcher *watcher = FDWatcher::getInstance();
+	do {
+	    watcher->invokeEvents(usec);
+	} while(usec <= 0);
+#else
 	if(usec <= 0){
 	    while(selector->run(0)){
 		;
@@ -92,20 +99,46 @@ namespace NetPipe {
 	}else{
 	    selector->run(usec);
 	}
+#endif
     }
 
-    void MainLoop::onAccept(int sock){
+    void MainLoop::onAccept(int sock, void *userData){
+	FDWatcher *watcher = FDWatcher::getInstance();
+#if 1
+	watcher->addReciveQueue(sock, this, this);
+	watcher->setReadBytes(sock, strlen(NETPIPE_HELLO_STRING));
+#else
 	VersionChecker *vc = new VersionChecker(this, sock);
 	if(vc == NULL)
 	    throw "no more memory.";
 	selector->add(vc);
+#endif
+    }
+
+    void MainLoop::onRecive(int fd, char *buf, size_t size, void *userData){
+	if(userData != NULL){
+	    FDWatcher *watcher = FDWatcher::getInstance();
+	    if(size != strlen(NETPIPE_HELLO_STRING)
+		|| strncmp(buf, NETPIPE_HELLO_STRING, strlen(NETPIPE_HELLO_STRING)) != 0){
+		watcher->closeReciveSocket(fd);
+		return;
+	    }
+	    watcher->addReciveQueue(fd, this, NULL);
+	}else{
+	    onPortRecive(buf, size);
+	}
+    }
+    void MainLoop::onClose(int fd, void *userData){
+	// nothing to do!
     }
 
     void MainLoop::onAcceptValidConnection(int sock){
+#if 0
 	PortReader *pr = new PortReader(this, sock);
 	if(pr == NULL)
 	    throw "no more memory.";
 	selector->add(pr);
+#endif
     }
 
     bool MainLoop::onPortRecive(char *buf, size_t size){
@@ -115,7 +148,7 @@ namespace NetPipe {
 //	    fprintf(log_fp, "\n\n---COUNT: %d---\n", dummy_count++);
 //	    fprintf(log_fp, "%s", p);
 	}
-printf("onPortRecive() got %d bytes data\n", size);
+	DPRINTF(6, ("onPortRecive() got %d bytes data\n", size));
  
 	uint32_t action;
 	if(size < sizeof(action))
@@ -124,8 +157,7 @@ printf("onPortRecive() got %d bytes data\n", size);
 	size -= sizeof(action);
 	buf += sizeof(action);
 
-if(action != 0)
-    printf("onPortRecive: action: %d\n", action);
+	DPRINTF(3, ("onPortRecive: action: %d\n", action));
 
 	uint32_t strLen;
 	if(size < sizeof(strLen))
@@ -157,7 +189,7 @@ if(action != 0)
 	*p = '\0';
 	p++;
 	char *serviceName = p;
-printf("onPortRecive: serviceName: %s\n", serviceName);
+	DPRINTF(4, ("onPortRecive: serviceName: %s\n", serviceName));
 
 	char *inputArg;
 	inputArg = strchr(serviceName, ' ');
@@ -168,10 +200,10 @@ printf("onPortRecive: serviceName: %s\n", serviceName);
 //	ActivePipe *ap = activePipeMap[pipePath];
 	ActivePipe *ap = activePipeMap[serviceName];
 	if(ap == NULL){ // サービスの新しいインスタンスを作らないといかん
-//printf("check action: %d <-> %d\n", action, PipeManager::PORT_ACTION_CLOSE);
+	    DPRINTF(2, ("check action: %d <-> %d\n", action, PipeManager::PORT_ACTION_CLOSE));
 	    if(action == PipeManager::PORT_ACTION_CLOSE)
 		return false;
-//printf("check passed.\n");
+	    DPRINTF(2, ("check passed.\n"));
 	    for(ServiceManagerList::iterator i = serviceManagerList.begin(); i != serviceManagerList.end(); i++){
 		char *name = (*i)->getServiceName();
 		if(inputArg != NULL)
@@ -183,7 +215,7 @@ printf("onPortRecive: serviceName: %s\n", serviceName);
 		    ap->service = (*i)->createNewService();
 		    if(ap->service == NULL)
 			throw "can not create new service instance.";
-		    ap->pipeManager = new PipeManager(selector, pipePath, serviceName, ap->service, this);
+		    ap->pipeManager = new PipeManager(pipePath, serviceName, ap->service, this);
 		    if(ap->pipeManager == NULL)
 			throw "no more memory";
 		    (*i)->registReadFDInput(ap->pipeManager);
@@ -196,16 +228,16 @@ printf("onPortRecive: serviceName: %s\n", serviceName);
 		}
 	    }
 	    if(ap == NULL){
-//printf("ap == NULL\n");
+		DPRINTF(2, ("ap == NULL\n"));
 		return false; // ap が作られていなかった == 次の奴へ connect できなかった、ならあきらめる。
 	    }
 	}
 	if(ap != NULL && action == PipeManager::PORT_ACTION_CLOSE){
-//printf("onPortRecive: port decliment. service: %s\n", serviceName);
+	    DPRINTF(2, ("onPortRecive: port decliment. service: %s\n", serviceName));
 	    ap->pipeManager->declimentInputPort(inputPort);
 	    return false;
 	}
-//printf("onPortRecive: port incliment.\n");
+	DPRINTF(2, ("onPortRecive: port incliment.\n"));
 	ap->pipeManager->inclimentInputPort();
 	if(inputArg != NULL)
 	    inputArg[-1] = '\0';
@@ -221,7 +253,7 @@ printf("onPortRecive: serviceName: %s\n", serviceName);
 	ServiceDB *db = ServiceDB::getInstance();
 	char *p, *pp = pipePath;
 	char *savePtr;
-//printf("connect to next port.\nMyServiceName: %s\ntargetPath:\n%s\n", serviceName, pipePath);
+	DPRINTF(2, ("connect to next port.\nMyServiceName: %s\ntargetPath:\n%s\n", serviceName, pipePath));
 	while((p = strtok_r(pp, "\n", &savePtr)) != NULL){
 	    pp = NULL;
 	    char *outPort, *nextPortService;
@@ -229,18 +261,18 @@ printf("onPortRecive: serviceName: %s\n", serviceName);
 		char outPortBuf[1024];
 		p = strchr(p, ';');
 		if(p == NULL){
-printf("PipePath check error (3). in MainLoop::ConnecToNextPort()\n");
+		    DPRINTF(3, ("PipePath check error (3). in MainLoop::ConnecToNextPort()\n"));
 		    continue;
 		}
 		p++;
 		outPort = p;
 		p = strchr(p, ';');
 		if(p == NULL){
-printf("PipePath check error (1). in MainLoop::ConnecToNextPort()\n");
+		    DPRINTF(3, ("PipePath check error (1). in MainLoop::ConnecToNextPort()\n"));
 		    continue;
 		}
 		if((int)(p - outPort) > (int)(sizeof(outPortBuf) - 1)){
-printf("PipePath check error (2). in MainLoop::ConnecToNextPort()\n");
+		    DPRINTF(3, ("PipePath check error (2). in MainLoop::ConnecToNextPort()\n"));
 		    continue;
 		}
 		memcpy(outPortBuf, outPort, p - outPort);
@@ -250,7 +282,7 @@ printf("PipePath check error (2). in MainLoop::ConnecToNextPort()\n");
 		nextPortService = p;
 		p = strchr(p, ';');
 		if(p == NULL){
-printf("PipePath check error (3). in MainLoop::ConnecToNextPort()\n");
+		    DPRINTF(3, ("PipePath check error (3). in MainLoop::ConnecToNextPort()\n"));
 		    continue;
 		}
 		p++;
@@ -258,7 +290,7 @@ printf("PipePath check error (3). in MainLoop::ConnecToNextPort()\n");
 		char *nextIPaddr = db->QueryIPHostName(nextService);
 		char *nextPortName = db->QueryTCPPortName(nextService);
 		if(nextIPaddr == NULL || nextPortName == NULL){
-printf("can not query nextService \"%s\". ip/port: %s:%s\n", nextService, nextIPaddr, nextPortName);
+		    DPRINTF(3, ("can not query nextService \"%s\". ip/port: %s:%s\n", nextService, nextIPaddr, nextPortName));
 		    continue;
 		}
 
@@ -275,26 +307,38 @@ printf("can not query nextService \"%s\". ip/port: %s:%s\n", nextService, nextIP
 		errno = 0;
 		int fd = connect_stream(nextIPaddr, nextPortName);
 		if(fd < 0){
-		    printf(" can not connect to nextService: %s:%s (%s)\n", nextIPaddr, nextPortName, strerror(errno));
+		    DPRINTF(4, (" can not connect to nextService: %s:%s (%s)\n", nextIPaddr, nextPortName, strerror(errno)));
 		    continue;
 		}
+
+#if 1
+		char *sendBuf = strdup(NETPIPE_HELLO_STRING);
+		if(sendBuf == NULL){
+		    closeSocket(fd);
+		    DPRINTF(2, ("no more memory. in MainLoop::ConnectToNextPort() by create strdup\n"));
+		    continue;
+		}
+		FDWatcher *watcher = FDWatcher::getInstance();
+		watcher->addNoSizedSendQueue(fd, sendBuf, strlen(sendBuf));
+#else
 		StreamBuffer *buf = new StreamBuffer(32);
 		if(buf == NULL){
 		    closeSocket(fd);
-printf("no more memory. in MainLoop::ConnecToNextPort() by create StreamBuffer\n");
+		    DPRINTF(2, ("no more memory. in MainLoop::ConnecToNextPort() by create StreamBuffer\n"));
 		    continue;
 		}
 		buf->WriteBinary(NETPIPE_HELLO_STRING, strlen(NETPIPE_HELLO_STRING));
 		PortWriter *pw = new PortWriter(fd, buf);
 		if(pw == NULL){
-printf("no more memory. in MainLoop::ConnecToNextPort() by create PortWriter\n");
+		    DPRINTF(2, ("no more memory. in MainLoop::ConnecToNextPort() by create PortWriter\n"));
 		    closeSocket(fd);
 		    delete buf;
 		    continue;
 		}
 		selector->add(pw);
-printf("nextPortService %s (%s:%s) connected.\npm->addWritePort outPort: %s, fd: %d\n",
-       nextPortService, nextIPaddr, nextPortName, outPort, fd);
+#endif
+		DPRINTF(3, ("nextPortService %s (%s:%s) connected.\npm->addWritePort outPort: %s, fd: %d\n",
+		    nextPortService, nextIPaddr, nextPortName, outPort, fd));
 		pm->addWritePort(outPort, fd, nextPortService);
 	    }
 	}
@@ -332,14 +376,19 @@ printf("nextPortService %s (%s:%s) connected.\npm->addWritePort outPort: %s, fd:
 	    upnp_close(upnp);
 	    throw "can not get my IPaddr and portNumber";
 	}
-printf("lisning on %s %s\n", IPaddr, portStr);
+	DPRINTF(10, ("MainLoop lisning on %s %s %s\n", IPaddr, portStr, upnp->wan_ipaddr != NULL ? "with upnp" : "without upnp"));
 
+#if 1
+	FDWatcher *watcher = FDWatcher::getInstance();
+	watcher->addAcceptQueue(fd, this);
+#else
 	Acceptor *acceptor = new Acceptor(this, fd);
 	if(acceptor == NULL){
 	    upnp_close(upnp);
 	    throw "no more memory.";
 	}
 	selector->add(acceptor);
+#endif
 
 	for(ServiceManagerList::iterator i = serviceManagerList.begin(); i != serviceManagerList.end(); i++){
 	    (*i)->registerServiceDB(IPaddr, portStr);

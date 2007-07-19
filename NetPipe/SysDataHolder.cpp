@@ -31,7 +31,9 @@
 #include "Acceptor.h"
 #include "net.h"
 #include "upnp.h"
-#include "FDSelector.h"
+//#include "FDSelector.h"
+#include "FDWatcher.h"
+#include "tools.h"
 
 #include <string.h>
 #ifdef HAVE_SYS_TIME_H
@@ -92,14 +94,19 @@ namespace NetPipe {
 	if(upnp == NULL)
 	    return;
 	if(upnp->sock >= 0){
+#if 1
+	    FDWatcher *watcher = FDWatcher::getInstance();
+	    watcher->addAcceptQueue(upnp->sock, this);
+#else
 	    Acceptor *a = new Acceptor(this, upnp->sock);
 	    if(a != NULL){
 		ml->selector->add(a);
-		if(upnp->wan_ipaddr != NULL && upnp->wan_port != NULL){
-		    printf("listning %s:%s with UPNP\n", upnp->wan_ipaddr, upnp->wan_port);
-		}else if(upnp->local_ipaddr != NULL){
-		    printf("listning %s:%d without upnp\n", upnp->local_ipaddr, upnp->local_port);
-		}
+	    }
+#endif
+	    if(upnp->wan_ipaddr != NULL && upnp->wan_port != NULL){
+		DPRINTF(10, ("SysData listning on %s:%s with UPNP\n", upnp->wan_ipaddr, upnp->wan_port));
+	    }else if(upnp->local_ipaddr != NULL){
+		DPRINTF(10, ("SysData listning on %s:%d without upnp\n", upnp->local_ipaddr, upnp->local_port));
 	    }
 	}
 	ServiceManager *sm = new ServiceManager("SystemData");
@@ -108,11 +115,17 @@ namespace NetPipe {
 	mainLoop->addServiceManager(sm);
     }
 
-    void SysDataHolder::onAccept(int fd){
+    void SysDataHolder::onAccept(int fd, void *userData){
 	char *data = getNowStatusXML();
 
 	send(fd, data, (int)strlen(data), 0);
 	closeSocket(fd);
+    }
+    void SysDataHolder::onRecive(int fd, char *buf, size_t size, void *userData){
+	// nothing to do!
+    }
+    void SysDataHolder::onClose(int fd, void *userData){
+	// nothing to do!
     }
 
     char *SysDataHolder::getNowStatusXML(){
@@ -175,28 +188,43 @@ namespace NetPipe {
 	    p += sprintf(p, "    pipeManager->serviceName %s\n", i->second->pipeManager->serviceName == NULL ? "(null)" : i->second->pipeManager->serviceName);
 	}
 
-	p += sprintf(p, "\nFDselector %p\n", mainLoop->selector);
-	if(mainLoop->selector != NULL){
-	    p += sprintf(p, "  readerMap.size(): %d\n", mainLoop->selector->rlmap.size());
+	FDWatcher *watcher = FDWatcher::getInstance();
+	p += sprintf(p, "\nFDWatcher %p\n", watcher);
+	if(watcher != NULL){
+	    p += sprintf(p, "  acceptQueue.size(): %d\n", watcher->acceptQueue.size());
 	    num = 1;
-	    for(FDSelector::streamReaderListMap::iterator i = mainLoop->selector->rlmap.begin(); i != mainLoop->selector->rlmap.end(); i++, num++){
-		p += sprintf(p, "   readerNo: %d (fd: %d) queueNum: %d\n", num, i->first, i->second.size());
-		int listNum = 1;
-		for(FDSelector::streamReaderList::iterator j = i->second.begin(); j != i->second.end(); j++, listNum++){
-		    p += sprintf(p, "    queue %d: %s\n", listNum, (*j)->getName());
-		    
-		}
+	    for(FDWatcher::AcceptQueue::iterator i = watcher->acceptQueue.begin();
+		i != watcher->acceptQueue.end(); i++, num++){
+		    p += sprintf(p, "     Reader No: %d (fd: %d) reciver: %p , userData: %p\n",
+			num, i->first, i->second->reciver, i->second->userData);
 	    }
 
-	    p += sprintf(p, "  writerMap.size(): %d\n", mainLoop->selector->wlmap.size());
+	    p += sprintf(p, "  recvQueue.size(): %d\n", watcher->recvQueue.size());
 	    num = 1;
-	    for(FDSelector::streamWriterListMap::iterator i = mainLoop->selector->wlmap.begin(); i != mainLoop->selector->wlmap.end(); i++, num++){
-		p += sprintf(p, "   writerNo: %d (fd: %d) queueNum: %d\n", num, i->first, i->second.size());
-		int listNum = 1;
-		for(FDSelector::streamWriterList::iterator j = i->second.begin(); j != i->second.end(); j++, listNum++){
-		    p += sprintf(p, "    queue %d: %s\n", listNum, (*j)->getName());
-		    
-		}
+	    for(FDWatcher::FD2RecvBuffer::iterator i = watcher->recvQueue.begin();
+		i != watcher->recvQueue.end(); i++, num++){
+		    p += sprintf(p, "     Reader No: %d (fd: %d) %sreciver: %p , userData: %p\n",
+			num, i->first, i->second->staticReadSize ? "StaticRead " : "",
+			i->second->reciver, i->second->userData);
+	    }
+
+	    p += sprintf(p, "  sendQueue.size(): %d\n", watcher->sendQueue.size());
+	    num = 1;
+	    for(FDWatcher::FD2SendBuffer::iterator i = watcher->sendQueue.begin();
+		i != watcher->sendQueue.end(); i++, num++){
+		    p += sprintf(p, "     Sender No: %d (fd: %d)\n", num, i->first);
+		    for(FDWatcher::WatcherSendBufferList::iterator j = i->second.begin();
+			j != i->second.end(); j++){
+			    p += sprintf(p, "       size: %d\n", (*j)->size);
+		    }
+	    }
+
+	    p += sprintf(p, "  eventQueue.size(): %d\n", watcher->eventQueue->size());
+	    num = 1;
+	    for(FDWatcher::EventQueue::iterator i = watcher->eventQueue->begin();
+		i != watcher->eventQueue->end(); i++, num++){
+		    p += sprintf(p, "     Event No: %d type: %d bufSize: %d\n",
+			num, (*i)->getType(), (*i)->getBufSize());
 	    }
 	}
 	return buf;

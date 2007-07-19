@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: VersionChecker.h 58 2007-07-04 06:03:18Z  $
+ * $Id$
  */
 
 #include "stdafx.h"

@@ -31,7 +31,7 @@
 #include "StreamReader.h"
 #include "MainLoop.h"
 
-#define NETPIPE_HELLO_STRING "NetPipe 1.0"
+//#define NETPIPE_HELLO_STRING "NetPipe 1.0"
 
 namespace NetPipe {
     class VersionChecker : public StreamReader {

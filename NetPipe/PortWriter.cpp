@@ -28,6 +28,7 @@
 #include "config.h"
 #include "PortWriter.h"
 #include "StreamBuffer.h"
+#include "tools.h"
 #include "net.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -43,8 +44,8 @@ namespace NetPipe {
 	    if(buf == NULL)
 		throw "no more memory";
 	}
-printf("PortWriter::PortWriter() fd: %d buffer: %p (%d bytes)\n", fd,
-       buf, buf != NULL ? buf->getSize() : 0);
+	DPRINTF(3, ("PortWriter::PortWriter() fd: %d buffer: %p (%d bytes)\n", fd,
+	    buf, buf != NULL ? buf->getSize() : 0));
 	headerBuf = NULL;
 	linkDown = false;
     }
@@ -66,10 +67,10 @@ printf("PortWriter::PortWriter() fd: %d buffer: %p (%d bytes)\n", fd,
     }
 
     bool PortWriter::onWrite(){
-printf("PortWriter::onWrite() fd: %d\n", fd);
-printf("  header: %p (%d bytes), buffer: %p (%d bytes)\n",
-       headerBuf, headerBuf != NULL ? headerBuf->getSize() : 0,
-       buf, buf != NULL ? buf->getSize() : 0);
+	DPRINTF(3, ("PortWriter::onWrite() fd: %d\n", fd));
+	DPRINTF(3, ("  header: %p (%d bytes), buffer: %p (%d bytes)\n",
+	    headerBuf, headerBuf != NULL ? headerBuf->getSize() : 0,
+	    buf, buf != NULL ? buf->getSize() : 0));
 	if(headerBuf != NULL){
 	    if(headerBuf->socketWrite(fd) == false){
 		delete headerBuf;

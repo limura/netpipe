@@ -31,6 +31,7 @@
 #include "config.h"
 #include "StreamReader.h"
 #include "StreamWriter.h"
+#include "FDWatcher.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

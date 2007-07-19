@@ -28,8 +28,9 @@
 #ifndef NETPIPE_PIPEMANAGER_H
 #define NETPIPE_PIPEMANAGER_H
 
-#include "FDSelector.h"
+//#include "FDSelector.h"
 #include "StreamBuffer.h"
+#include "FDWatcher.h"
 
 #include <map>
 #include <list>
@@ -39,13 +40,13 @@ namespace NetPipe {
     class MainLoop;
     class Service;
     class SysDataHolder;
-    class PipeManager {
+    class PipeManager : public FDReciver {
 	friend class MainLoop;
 	friend class SysDataHolder;
     private:
 	char *pipePath;
 	char *serviceName;
-	FDSelector *selector;
+	//FDSelector *selector;
 	Service *service;
 	int inputSockNum;
 	MainLoop *parent;
@@ -66,13 +67,16 @@ namespace NetPipe {
 	void addWritePort(char *portName, int fd, char *nextPortService);
 	void inclimentInputPort();
 	void declimentInputPort(char *portName);
+	void onAccept(int fd, void *userData);
+	void onRecive(int fd, char *buf, size_t size, void *userData);
+	void onClose(int fd, void *userData);
 
     public:
 	enum {
 	    PORT_ACTION_NORMAL = 0,
 	    PORT_ACTION_CLOSE = 1,
 	};
-	PipeManager(FDSelector *selector, char *thisPipePath, char *serviceName, Service *service, MainLoop *ml);
+	PipeManager(char *thisPipePath, char *serviceName, Service *service, MainLoop *ml);
 	~PipeManager();
 
 	void addReadFD(int fd, size_t bufsize = 4096);

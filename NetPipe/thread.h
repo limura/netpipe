@@ -25,8 +25,8 @@
  * $Id: thread.h 11 2007-06-08 18:48:46Z  $
  */
 
-#ifndef PASTRY_LIKE_THREAD_H
-#define PASTRY_LOKE_THREAD_H
+#ifndef NETPIPE_THREAD_H
+#define NETPIPE_THREAD_H
 
 #include "config.h"
 #ifdef HAVE_PTHREAD_H
@@ -100,4 +100,4 @@ int thread_cond_destroy(thread_cond *cond);
 #ifdef __cplusplus
 }
 #endif
-#endif /* PASTRY_LIKE_THREAD_H */
+#endif /* NETPIPE_THREAD_H */

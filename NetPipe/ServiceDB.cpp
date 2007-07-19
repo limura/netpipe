@@ -28,6 +28,7 @@
 #include "config.h"
 #include "ServiceDB.h"
 #include "net.h"
+#include "tools.h"
 
 #include <stdlib.h>
 #include <string.h>

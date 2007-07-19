@@ -31,6 +31,7 @@
 #include "net.h"
 #include "StreamBuffer.h"
 #include "VersionChecker.h"
+#include "tools.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -117,12 +118,12 @@ CONTINUE:
 	    char *port = db->QueryTCPPortName((char *)i->first.c_str());
 
 	    if(targetService == NULL || IPaddr == NULL || port == NULL){
-		printf("can not find service name(%s) or IPaddr:port (%s:%s)\n", targetService, IPaddr, port);
+		DPRINTF(4, ("can not find service name(%s) or IPaddr:port (%s:%s)\n", targetService, IPaddr, port));
 		continue;
 	    }
 	    if(targetPort == NULL)
 		targetPort = "";
-	    printf("  %s:%s <- %s;%s\n", IPaddr, port, targetPort, targetService);
+	    DPRINTF(4, ("  %s:%s <- %s;%s\n", IPaddr, port, targetPort, targetService));
 	    int sock = connect_stream(IPaddr, port);
 	    if(sock < 0)
 		continue;

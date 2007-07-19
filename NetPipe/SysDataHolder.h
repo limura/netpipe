@@ -31,9 +31,10 @@
 #include "MainLoop.h"
 #include "upnp.h"
 #include "Acceptor.h"
+#include "FDWatcher.h"
 
 namespace NetPipe {
-    class SysDataHolder : public AcceptEventHandler {
+    class SysDataHolder : public FDReciver {
     private:
 	cookai_upnp *upnp;
 	MainLoop *mainLoop;
@@ -42,7 +43,9 @@ namespace NetPipe {
     public:
 	virtual ~SysDataHolder();
 	static SysDataHolder *getInstance();
-	void onAccept(int fd);
+	void onAccept(int fd, void *userData);
+	void onRecive(int fd, char *buf, size_t size, void *userData);
+	void onClose(int fd, void *userData);
 	char *getNowStatusXML();
 
 	void setMainLoop(MainLoop *ml);

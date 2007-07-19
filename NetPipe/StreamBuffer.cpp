@@ -26,6 +26,7 @@
  */
 
 #include "StreamBuffer.h"
+#include "tools.h"
 
 #include <stdio.h>
 
@@ -79,6 +80,15 @@ namespace NetPipe {
 	}
 	remain_size = Bufsize;
     }
+    StreamBuffer::StreamBuffer(char *buffer, size_t bufSize){
+	if(buffer == NULL || bufSize <= 0){
+	    readP = writeP = buf = NULL;
+	    remain_size = 0;
+	}else{
+	    readP = writeP = buf = buffer;
+	    remain_size = 0;
+	}
+    }
 
     StreamBuffer::~StreamBuffer(){
 	if(buf != NULL)
@@ -92,7 +102,7 @@ namespace NetPipe {
 	if(new_size < 1024)
 	    new_size = 1024;
 	if(new_size > 4096*1024)
-	    printf("WARNING!!! new buffer size %d too big!\n", new_size);
+	    DPRINTF(6, ("WARNING!!! new buffer size %d too big!\n", new_size));
 	char *tmp_buf = (char *)realloc(buf, new_size);
 	if(tmp_buf == NULL)
 	    throw "realloc error.";
@@ -325,15 +335,15 @@ namespace NetPipe {
 	return newBuf;
     }
 
-    // return code: false; ‚à‚¤‰½‚à‘—‚é‚à‚Ì‚Í–³‚¢ or ERROR true: ‚Ü‚¾‘—‚é‚à‚Ì‚ª‚ ‚é
+    // return code: false; ‚à‚¤‰½‚à‘—‚é‚à‚Ì‚Í–³‚¢ true: ‚Ü‚¾‘—‚é‚à‚Ì‚ª‚ ‚é ERROR: throw char*
     bool StreamBuffer::socketWrite(int fd){
 	if(fd < 0)
-	    return false;
+	    throw "invalid fd";
 	if(writeP - readP <= 0)
-	    return false;
+	    throw "fatal error";
 	int write_length = send(fd, buf, (int)(writeP - readP), 0);
 	if(write_length <= 0)
-	    return false;
+	    throw "EOF";
 	if(write_length < (writeP - readP)){
 	    readP += write_length;
 	    return true;
@@ -357,6 +367,11 @@ namespace NetPipe {
 	writeP += read_length;
 	remain_size -= read_length;
 	return true;
+    }
+
+    void StreamBuffer::releaseBuffer(){
+	readP = writeP = buf = NULL;
+	remain_size = 0;
     }
 
 }; /* namespace NetPipe */
