@@ -33,12 +33,8 @@
 #include "ServiceDB.h"
 #include "net.h"
 #include "ServiceManager.h"
-#include "PortReader.h"
-#include "Acceptor.h"
 #include "Service.h"
 #include "SysDataHolder.h"
-#include "VersionChecker.h"
-#include "PortWriter.h"
 #include "tools.h"
 
 #include <errno.h>

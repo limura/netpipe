@@ -30,16 +30,18 @@
 #include <tools.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <map>
+#include <string>
 
 #ifndef _WIN32
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#endif
-#ifdef HAVE_PROCESS_H
+#else
 #include <process.h>
+#include <io.h>
 #endif
 
 void test_ServiceDB(){
@@ -88,7 +90,7 @@ public:
 
 class ShService : public NetPipe::Service {
 private:
-    typedef std::map<string, int> ShFDMap;
+    typedef std::map<std::string, int> ShFDMap;
     ShFDMap shFDMap;
     int callnum;
 public:
