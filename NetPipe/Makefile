@@ -27,12 +27,10 @@ CC = gcc
 AR = ar
 RANLIB = ranlib
 
-SRCS = Acceptor.cpp PortReader.cpp StreamBuffer.cpp
-SRCS += Kicker.cpp PortWriter.cpp StreamReader.cpp
-SRCS += MainLoop.cpp ServiceDB.cpp StreamWriter.cpp
-SRCS += FDReader.cpp ServiceManager.cpp
-SRCS += FDSelector.cpp PipeManager.cpp SysDataHolder.cpp
-SRCS += VersionChecker.cpp
+SRCS = Acceptor.cpp StreamBuffer.cpp
+SRCS += Kicker.cpp MainLoop.cpp ServiceDB.cpp
+SRCS += ServiceManager.cpp FDWatcher.cpp PipeManager.cpp
+SRCS += SysDataHolder.cpp
 CSRCS = net.c tools.c upnp.c thread.c
 
 TARGET = libNetPipe.a
