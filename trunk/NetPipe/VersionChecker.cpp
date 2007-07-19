@@ -27,6 +27,7 @@
 
 #include "VersionChecker.h"
 #include "MainLoop.h"
+#include "tools.h"
 
 namespace NetPipe {
     VersionChecker::VersionChecker(MainLoop *ml, int FD){
@@ -51,7 +52,7 @@ namespace NetPipe {
 		parent->onAcceptValidConnection(fd);
 	    return false;
 	}
-	printf("version check error. close socket.\n");
+	DPRINTF(4, ("version check error. close socket.\n"));
 	closeSocket(fd);
 	return false;
     }

@@ -28,13 +28,14 @@
 #include "config.h"
 #include "FDSelector.h"
 #include "tools.h"
+#include "FDWatcher.h"
 
 #include <signal.h>
 #include <errno.h>
 
 namespace NetPipe {
     FDSelector::FDSelector(){
-printf("FDSelector: CLEAR readport\n");
+	DPRINTF(5, ("FDSelector: new. CLEAR readport\n"));
 	FD_ZERO(&rfds);
 	FD_ZERO(&wfds);
 	maxfd = -1;
@@ -58,7 +59,7 @@ printf("FDSelector: CLEAR readport\n");
 	}
 	wlmap.clear();
 	maxfd = -1;
-printf("FDSelector: CLEAR readport\n");
+	DPRINTF(5, ("FDSelector: CLEAR readport\n"));
 	FD_ZERO(&rfds);
 	FD_ZERO(&wfds);
     }
@@ -67,7 +68,7 @@ printf("FDSelector: CLEAR readport\n");
 	if(sr == NULL)
 	    return false;
 	int fd = sr->getFD();
-printf("FDSelector: add readport: %d\n", fd);
+	DPRINTF(5,("FDSelector: add readport: %d\n", fd));
 	FD_SET(fd, &rfds);
 	if(maxfd < fd)
 	    maxfd = fd;
@@ -79,7 +80,7 @@ printf("FDSelector: add readport: %d\n", fd);
 	if(sw == NULL)
 	    return false;
 	int fd = sw->getFD();
-printf("FDSelector: add writeport: %d\n", fd);
+	DPRINTF(5, ("FDSelector: add writeport: %d\n", fd));
 	FD_SET(fd, &wfds);
 	if(maxfd < fd)
 	    maxfd = fd;
@@ -93,7 +94,7 @@ printf("FDSelector: add writeport: %d\n", fd);
 	rlmap[fd].erase(i);
 	if(rlmap[fd].size() > 0)
 	    return true;
-	printf("FDSelector: DEL readport: %d\n", fd);
+	DPRINTF(5, ("FDSelector: DEL readport: %d\n", fd));
 	FD_CLR(fd, &rfds);
 	rlmap.erase(fd);
 	return true;
@@ -105,7 +106,7 @@ printf("FDSelector: add writeport: %d\n", fd);
 	wlmap[fd].erase(i);
 	if(wlmap[fd].size() > 0)
 	    return true;
-	printf("FDSelector: DEL writeport: %d\n", fd);
+	DPRINTF(5, ("FDSelector: DEL writeport: %d\n", fd));
 	FD_CLR(fd, &wfds);
 	wlmap.erase(fd);
 	return true;
@@ -146,7 +147,7 @@ printf("FDSelector: add writeport: %d\n", fd);
 	memcpy(&read_fds, &rfds, sizeof(rfds));
 	memcpy(&write_fds, &wfds, sizeof(wfds));
 
-	DPRINTF(10, ("select sleep %d usec.\n", usec));
+	DPRINTF(5, ("select sleep %d usec.\n", usec));
 
 	int selectRet;
 	errno = 0;
@@ -164,12 +165,7 @@ printf("FDSelector: add writeport: %d\n", fd);
 	    if(errno == EINTR)
 		return true;
 #endif
-#ifdef EINTR
-	    if(errno == EINTR)
-		return true;
-#endif
-	    printf("select() return %d.\n", selectRet);
-	    perror("select:");
+	    DPRINTF(5, ("select() return %d.\n", selectRet));
 	    throw "select return error. ";
 	}
 	for(streamReaderListMap::iterator i = rlmap.begin(); selectRet > 0 && i != rlmap.end(); i++){

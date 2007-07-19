@@ -48,15 +48,11 @@
 #ifdef HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
 #endif
-#include <stdlib.h>
-
-#include <sys/types.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
+#include <stdlib.h>
+#include <sys/types.h>
 #include <string.h>
 
 #include "net.h"

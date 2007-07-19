@@ -29,6 +29,7 @@
 #include "MainLoop.h"
 #include "Acceptor.h"
 #include "net.h"
+#include "tools.h"
 
 #include <stdio.h>
 
@@ -48,7 +49,7 @@ namespace NetPipe {
     }
 
     bool Acceptor::onRecive(){
-printf("Acceptor: onRecive. accept(%d, NULL, 0)\n", fd);
+	DPRINTF(3, ("Acceptor: onRecive. accept(%d, NULL, 0)\n", fd));
 	int sock = (int)accept(fd, NULL, 0);
 	if(sock < 0)
 	    return false;

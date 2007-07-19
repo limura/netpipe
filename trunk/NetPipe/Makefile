@@ -33,7 +33,7 @@ SRCS += MainLoop.cpp ServiceDB.cpp StreamWriter.cpp
 SRCS += FDReader.cpp ServiceManager.cpp
 SRCS += FDSelector.cpp PipeManager.cpp SysDataHolder.cpp
 SRCS += VersionChecker.cpp
-CSRCS = net.c tools.c upnp.c
+CSRCS = net.c tools.c upnp.c thread.c
 
 TARGET = libNetPipe.a
 CFLAGS = -g -O -Wall -DDEBUG -Wuninitialized -pg

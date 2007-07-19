@@ -29,27 +29,31 @@
 #define NETPIPE_MAINLOOP_H
 
 #include "Service.h"
-#include "FDSelector.h"
+//#include "FDSelector.h"
 #include "upnp.h"
 #include "Acceptor.h"
+#include "FDWatcher.h"
 
 #include <map>
 #include <list>
 #include <string>
+
+#define NETPIPE_HELLO_STRING "NetPipe 1.0"
 
 namespace NetPipe {
     class PortReader;
     class SysDataHolder;
     class PipeManager;
     class VersionChecker;
-    class MainLoop : public AcceptEventHandler {
+    class MainLoop : public FDReciver {
 	friend class Acceptor;
 	friend class PortReader;
 	friend class SysDataHolder;
 	friend class PipeManager;
 	friend class VersionChecker;
+	friend class FDWatcher;
     private:
-	FDSelector *selector;
+	//FDSelector *selector;
 	cookai_upnp *upnp;
 
 	int dummy_count;
@@ -66,7 +70,9 @@ namespace NetPipe {
 
 	void connectToNextPort(PipeManager *pm, char *serviceName, char *pipePath);
 
-	void onAccept(int sock);
+	void onAccept(int sock, void *userData);
+	void onRecive(int fd, char *buf, size_t size, void *userData);
+	void onClose(int fd, void *userData);
 	void onAcceptValidConnection(int sock);
 	void openAcceptPort();
 	bool onPortRecive(char *buf, size_t size);

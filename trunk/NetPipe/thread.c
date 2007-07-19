@@ -149,7 +149,7 @@ int thread_cond_init(thread_cond *cond){
     if(pthread_cond_init((pthread_cond_t *)cond, NULL) == 0)
 	return TRUE;
 #else defined(HAVE_WINDOWS_H)
-    *cond = (thread_cond)CreateEvent(NULL, TRUE, TRUE, NULL);
+    *cond = (thread_cond)CreateEvent(NULL, FALSE, FALSE, NULL);
     if(*cond != 0)
 	return TRUE;
 #endif
@@ -218,7 +218,7 @@ int thread_cond_timedwait(thread_cond *cond, thread_mutex *mutex, int usec){
     switch(WaitForSingleObject((HANDLE)*cond, usec / 1000)){
 	case WAIT_OBJECT_0:
 	    thread_mutex_lock(mutex);
-	    ResetEvent((HANDLE)*cond);
+	    /*ResetEvent((HANDLE)*cond);*/
 	    return TRUE;
 	    break;
 	default:
