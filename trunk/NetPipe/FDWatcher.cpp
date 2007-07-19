@@ -594,3 +594,4 @@ namespace NetPipe {
 	addNewEvent(eofEvent);
     }
 };
+
