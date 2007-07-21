@@ -32,6 +32,11 @@
 void InitializeWindows(void){
     WORD wVersionRequested;
     WSADATA wsaData;
+    static int initialized = 0;
+
+    if(initialized != 0)
+	return;
+    initialized = 1;
 
     wVersionRequested = MAKEWORD(2, 0);
 

@@ -114,6 +114,7 @@ namespace NetPipe {
     }
 
     void MainLoop::onRecive(int fd, char *buf, size_t size, void *userData){
+	DPRINTF(10, ("MainLoop::onRecive(%d, %p, %d, %p)\n", fd, buf, size, userData));
 	if(userData != NULL){
 	    FDWatcher *watcher = FDWatcher::getInstance();
 	    if(size != strlen(NETPIPE_HELLO_STRING)

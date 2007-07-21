@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
     char *buf, *line, *p;
     size_t bufSize = 0;
     int fd, len;
-    char *targetFile = "kicker.txt";
+    char *targetFile = "..\\debug\\kicker.txt";
     NetPipe::Kicker *k = new NetPipe::Kicker();
     struct stat st;
 
