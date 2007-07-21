@@ -129,8 +129,9 @@ namespace NetPipe {
 	    if(recvRet != sizeof(readSize) || readSize <= 0)
 		return false;
 	    grow(readSize + 1);
-	    buf[readSize] = '\0'; // 〓〓〓〓 '\0' terminate 〓〓〓〓〓〓〓〓〓B〓〓〓〓〓〓〓S〓D〓〓〓〓〓〓〓I
 	}else{
+	    if(staticReadSize)
+		p - buf;
 	    recvRet = recv(sock, p, readSize - (p - buf), 0);
 	    if(recvRet <= 0)
 		return false;
@@ -254,19 +255,25 @@ namespace NetPipe {
 	AcceptQueue::iterator aqi;
 	FD2SendBuffer::iterator fd2si;
 	FD2RecvBuffer::iterator fd2ri;
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 500;
 	while(1){
 	    thread_mutex_lock(&parent->fdsetMutex);
 	    memcpy(&rfds, &parent->read_fds, sizeof(rfds));
 	    memcpy(&wfds, &parent->write_fds, sizeof(wfds));
 	    thread_mutex_unlock(&parent->fdsetMutex);
-	    int selectRet = select(parent->maxFDNum + 1, &rfds, &wfds, NULL, NULL);
-	    if(selectRet <= 0){
+	    int selectRet = select(parent->maxFDNum + 1, &rfds, &wfds, NULL, &timeout);
+	    if(selectRet < 0){
 #ifdef EINTR
 		if(errno == EINTR)
 		    continue;
 #endif
 		return;
 	    }
+	    if(selectRet == 0)
+		continue;
+	    DPRINTF(10, ("selectRet: %d\n", selectRet));
 	    thread_mutex_lock(&parent->acceptQueueMutex);
 	    for(aqi = parent->acceptQueue.begin(); aqi != parent->acceptQueue.end() && selectRet > 0; aqi++){
 		if(FD_ISSET(aqi->first, &rfds)){
@@ -274,6 +281,7 @@ namespace NetPipe {
 		    int fd = accept(aqi->first, NULL, NULL);
 		    if(fd < 0)
 			break;
+		    DPRINTF(10, ("  create new EVENT (ACCEPT)\n"));
 		    FDEvent *acceptEvent = new FDEvent(FDEvent::ACCEPT, fd, NULL, 0,
 			aqi->second != NULL ? aqi->second->userData : NULL);
 		    if(acceptEvent == NULL)
@@ -296,6 +304,7 @@ namespace NetPipe {
 			break;
 		    }
 		    if(fd2ri->second->staticReadSize == true || fd2ri->second->readSize == 0){
+			DPRINTF(10, ("  create new EVENT RECV %d bytes\n", fd2ri->second->p - fd2ri->second->buf));
 			FDEvent *recvEvent = new FDEvent(FDEvent::RECV, fd2ri->first,
 			    fd2ri->second->buf, fd2ri->second->p - fd2ri->second->buf, fd2ri->second->userData);
 			if(recvEvent == NULL)
@@ -438,8 +447,10 @@ namespace NetPipe {
     void FDWatcher::setReadBytes(int fd, size_t size){
 	thread_mutex_lock(&recvQueueMutex);
 	WatcherRecvBuffer *wrb = recvQueue[fd];
-	if(wrb != NULL)
+	if(wrb != NULL){
+	    wrb->grow(size);
 	    wrb->readSize = size;
+	}
 	thread_mutex_unlock(&recvQueueMutex);
     }
 
@@ -569,9 +580,10 @@ namespace NetPipe {
 	thread_mutex_lock(&recvQueueMutex);
 	for(FD2RecvBuffer::iterator i = recvQueue.begin(); i != recvQueue.end(); i++){
 	    if(i->first == fd){
-		deleteRecvQueue(i);
 		reciver = i->second->reciver;
 		userData = i->second->userData;
+		deleteRecvQueue(i);
+		break;
 	    }
 	}
 	thread_mutex_unlock(&recvQueueMutex);

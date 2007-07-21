@@ -193,7 +193,7 @@ namespace NetPipe {
 	    num = 1;
 	    for(FDWatcher::AcceptQueue::iterator i = watcher->acceptQueue.begin();
 		i != watcher->acceptQueue.end(); i++, num++){
-		    p += sprintf(p, "     Reader No: %d (fd: %d) reciver: %p , userData: %p\n",
+		    p += sprintf(p, "     Reader No: %d (fd: %d) reciver: %p, userData: %p\n",
 			num, i->first, i->second->reciver, i->second->userData);
 	    }
 
@@ -201,7 +201,7 @@ namespace NetPipe {
 	    num = 1;
 	    for(FDWatcher::FD2RecvBuffer::iterator i = watcher->recvQueue.begin();
 		i != watcher->recvQueue.end(); i++, num++){
-		    p += sprintf(p, "     Reader No: %d (fd: %d) %sreciver: %p , userData: %p\n",
+		    p += sprintf(p, "     Reader No: %d (fd: %d) %sreciver: %p, userData: %p\n",
 			num, i->first, i->second->staticReadSize ? "StaticRead " : "",
 			i->second->reciver, i->second->userData);
 	    }
@@ -210,7 +210,7 @@ namespace NetPipe {
 	    num = 1;
 	    for(FDWatcher::FD2SendBuffer::iterator i = watcher->sendQueue.begin();
 		i != watcher->sendQueue.end(); i++, num++){
-		    p += sprintf(p, "     Sender No: %d (fd: %d)\n", num, i->first);
+		    p += sprintf(p, "     Sender No: %d (fd: %d) %d queue alive\n", num, i->first, i->second.size());
 		    for(FDWatcher::WatcherSendBufferList::iterator j = i->second.begin();
 			j != i->second.end(); j++){
 			    p += sprintf(p, "       size: %d\n", (*j)->size);

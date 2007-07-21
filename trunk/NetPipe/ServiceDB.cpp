@@ -140,12 +140,12 @@ error_retry:
     }
 
     ServiceDB::Service *ServiceDB::updateServiceData(char *serviceName){
-	char *urlBuf[1024];
+	char urlBuf[1024];
 	int size;
 	if(serviceName == NULL || strlen(serviceName) + strlen(STATIC_SERVICE_MAP_URL) + 2 > sizeof(urlBuf))
 	    return NULL;
-	sprintf((char *)urlBuf, "%s?%s", STATIC_SERVICE_MAP_URL, serviceName);
-	char *httpReply = HTTP_post((char *)urlBuf, NULL, 0, NULL, &size);
+	sprintf(urlBuf, "%s?%s", STATIC_SERVICE_MAP_URL, serviceName);
+	char *httpReply = HTTP_post(urlBuf, NULL, 0, NULL, &size);
 	if(httpReply == NULL)
 	    return NULL;
 	char *ok200 = strstr(httpReply, " 200 OK\r\n");

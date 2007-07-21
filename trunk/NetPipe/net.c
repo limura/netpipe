@@ -505,7 +505,10 @@ int HTTP_connect(char *url, char **file){
 	}else{
 		if(p2 != NULL && p2 < p){
 			port = "80";
-			p = p2;
+			p = p2 + 1;
+			memcpy(hostBuf, url, p2 - url);
+			hostBuf[p2 - url] = '\0';
+			host = hostBuf;
 		}else{
 			memcpy(hostBuf, host, p - host);
 			hostBuf[p - host] = '\0';
