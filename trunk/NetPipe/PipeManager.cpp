@@ -194,9 +194,9 @@ namespace NetPipe {
 	    headerBuf->WriteInt8('\n'); // ‰üs‚ª‹æØ‚è•¶Žš
 	    headerBuf->WriteBinary(pipePath, pipePathLen); // PipePath
 #if 1
+	    headerBuf->WriteBinary(wp->buf->getBuffer(), wp->buf->getSize());
 	    FDWatcher *watcher = FDWatcher::getInstance();
 	    watcher->addSendQueue((*i)->sock, headerBuf);
-	    watcher->addSendQueue((*i)->sock, wp->buf->getBuffer(), wp->buf->getSize());
 	    wp->buf->releaseBuffer();
 #else
 	    selector->add(pw);
