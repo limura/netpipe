@@ -100,6 +100,9 @@ namespace NetPipe {
 	bufSize = 0;
     }
     void WatcherRecvBuffer::grow(size_t targetSize){
+#define MAX_BUFFER_SIZE (4 * 1024 * 1024)
+	if(targetSize > MAX_BUFFER_SIZE)
+	    throw "too big buffer size";
 	if(buf == NULL){
 	    p = buf = (char *)malloc(targetSize);
 	    if(buf == NULL)
@@ -126,12 +129,13 @@ namespace NetPipe {
 	    return false;
 	if(readSize < 0 && staticReadSize == false){
 	    recvRet = recv(sock, (char *)&readSize, sizeof(readSize), 0);
+	    readSize = ntohl(readSize);
 	    if(recvRet != sizeof(readSize) || readSize <= 0)
 		return false;
 	    grow(readSize + 1);
 	}else{
-	    if(staticReadSize)
-		p - buf;
+//	    if(staticReadSize)
+//		p - buf;
 	    recvRet = recv(sock, p, readSize - (p - buf), 0);
 	    if(recvRet <= 0)
 		return false;
@@ -171,8 +175,9 @@ namespace NetPipe {
 	    return WatcherSendBuffer::END_OF_FILE;
 	int sendRet;
 	if(size >= 0){
-	    sendRet = send(fd, (char *)&size, sizeof(size), 0);
-	    if(sendRet != sizeof(size))
+	    BufSize_t nsize = htonl(size);
+	    sendRet = send(fd, (char *)&nsize, sizeof(nsize), 0);
+	    if(sendRet != sizeof(nsize))
 		return WatcherSendBuffer::END_OF_FILE;
 	    size = -1;
 	}else{

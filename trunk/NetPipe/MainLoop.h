@@ -62,6 +62,8 @@ namespace NetPipe {
 	    Service *service;
 	    PipeManager *pipeManager;
 	} ActivePipe;
+	typedef std::map<int, bool> intBoolMap;
+	intBoolMap usedSocketMap;
 	typedef std::map<std::string, ActivePipe *> string2ActivePipeMap;
 	string2ActivePipeMap activePipeMap;
 	typedef std::list<ServiceManager *> ServiceManagerList;

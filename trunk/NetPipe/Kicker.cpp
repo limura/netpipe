@@ -134,7 +134,7 @@ CONTINUE:
 		throw "no more memory";
 
 	    sm->WriteBinary(NETPIPE_HELLO_STRING, strlen(NETPIPE_HELLO_STRING));
-	    sm->WriteUint32(size);
+	    sm->WriteInt32(size);
 	    sm->WriteUint32(0);
 	    sm->WriteUint32(size - sizeof(uint32_t) * 2);
 	    sm->WriteBinary(targetPort, strlen(targetPort));
