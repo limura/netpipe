@@ -52,6 +52,7 @@ namespace NetPipe {
 	//    throw "FDSelector initialize failed.";
 	serviceManagerList.clear();
 	activePipeMap.clear();
+	usedSocketMap.clear();
 	upnp = NULL;
 
 #if 0
@@ -103,7 +104,8 @@ namespace NetPipe {
     void MainLoop::onAccept(int sock, void *userData){
 	FDWatcher *watcher = FDWatcher::getInstance();
 #if 1
-	watcher->addReciveQueue(sock, this, this);
+	watcher->addReciveQueue(sock, this, NULL);
+	usedSocketMap[sock] = true;
 	watcher->setReadBytes(sock, strlen(NETPIPE_HELLO_STRING));
 #else
 	VersionChecker *vc = new VersionChecker(this, sock);
@@ -115,19 +117,20 @@ namespace NetPipe {
 
     void MainLoop::onRecive(int fd, char *buf, size_t size, void *userData){
 	DPRINTF(10, ("MainLoop::onRecive(%d, %p, %d, %p)\n", fd, buf, size, userData));
-	if(userData != NULL){
+	if(usedSocketMap[fd] == true){
+	    usedSocketMap[fd] = false;
 	    FDWatcher *watcher = FDWatcher::getInstance();
 	    if(size != strlen(NETPIPE_HELLO_STRING)
 		|| strncmp(buf, NETPIPE_HELLO_STRING, strlen(NETPIPE_HELLO_STRING)) != 0){
 		watcher->closeReciveSocket(fd);
 		return;
 	    }
-	    watcher->addReciveQueue(fd, this, NULL);
 	}else{
 	    onPortRecive(buf, size);
 	}
     }
     void MainLoop::onClose(int fd, void *userData){
+	usedSocketMap[fd] = false;
 	// nothing to do!
     }
 
