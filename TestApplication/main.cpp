@@ -292,6 +292,7 @@ private:
 public:
     void onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
 	NetPipe::Service::EVENT_TYPE type, char *buf, size_t size){
+	    DPRINTF(10, ("DevNull recv.\n"));
 	switch(type){
 	    case NetPipe::Service::RECV:
 #ifndef HAVE_TIMEGETTIME
@@ -305,6 +306,7 @@ public:
 #endif
 		break;
 	    case NetPipe::Service::RECV_DOWN:
+		DPRINTF(10, ("DevNull got RECV_DOWN. exit\n"));
 		printf("DevNull got RECV_DOWN. exit\n");
 		pm->exit();
 		break;
