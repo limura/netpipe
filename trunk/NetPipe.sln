@@ -14,6 +14,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Kicker", "Kicker\Kicker.vcp
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetPipe.NET", "NetPipe.NET\NetPipe.NET.vcproj", "{A97A619F-899C-4C24-ACFD-68A0610E5E92}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D534E54B-7E88-4535-8FDC-E7AE67120071} = {D534E54B-7E88-4535-8FDC-E7AE67120071}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

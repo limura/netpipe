@@ -413,7 +413,7 @@ int main(int argc, char *argv[]){
     sm->addServiceCreator(new DevNullCreator());
     ml->addServiceManager(sm);
 
-    ml->run();
+    ml->run(100000);
 
     return 0;
 }
