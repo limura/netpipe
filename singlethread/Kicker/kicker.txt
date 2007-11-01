@@ -1,0 +1,10 @@
+1435_10:DataCreator 1024;stdout;stdin;1437_10:Pipe
+1437_10:Pipe;stdout;stdin;1431_10:Pipe
+1431_10:Pipe;stdout;stdin;1432_10:Pipe
+1432_10:Pipe;stdout;stdin;1434_10:Pipe
+1434_10:Pipe;stdout;stdin;1433_10:Pipe
+1433_10:Pipe;stdout;stdin;1436_10:Pipe
+1436_10:Pipe;stdout;stdin;1439_10:Pipe
+1439_10:Pipe;stdout;stdin;1430_10:Pipe
+1430_10:Pipe;stdout;stdin;1438_10:DevNull
+
