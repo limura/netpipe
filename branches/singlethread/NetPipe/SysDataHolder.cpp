@@ -1,0 +1,205 @@
+/*
+ * Copyright (c) 2007 IIMURA Takuji. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ * 
+ * $Id: Peer.h 16 2006-08-09 07:40:49Z uirou.j $
+ */
+
+#include "SysDataHolder.h"
+#include "MainLoop.h"
+#include "ServiceManager.h"
+#include "Acceptor.h"
+#include "net.h"
+#include "upnp.h"
+#include "FDSelector.h"
+
+#include <string.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
+namespace NetPipe {
+
+    class SysDataSender : public Service {
+	SysDataHolder *sdh;
+    public:
+	SysDataSender(SysDataHolder *parent){
+	    sdh = parent;
+	};
+
+	void onEvent(PipeManager *pm, char *portName, char *arg, Service::EVENT_TYPE type, char *buf, size_t bufSize){
+	    switch(type){
+		case Service::RECV:
+		    if(portName != NULL && strcmp(portName, "stdout")){
+			char *data = sdh->getNowStatusXML();
+			pm->write("stdout", data, strlen(data));
+		    }
+		    break;
+		default:
+		    break;
+	    }
+	};
+    };
+
+    class SysDataSenderCreator : public ServiceCreator {
+    public:
+	Service *createNewService(void *userData){
+	    return new SysDataSender((SysDataHolder *)userData);
+	}
+    };
+
+
+    SysDataHolder::SysDataHolder(){
+	mainLoop = NULL;
+	upnp = NULL;
+    }
+
+    SysDataHolder::~SysDataHolder(){
+	if(upnp != NULL)
+	    upnp_close(upnp);
+    }
+
+    SysDataHolder *SysDataHolder::getInstance(){
+	static SysDataHolder singleton;
+	return &singleton;
+    }
+
+    void SysDataHolder::setMainLoop(MainLoop *ml){
+	mainLoop = ml;
+	if(mainLoop == NULL)
+	    return;
+	upnp = upnp_listen_stream_with_local(6575);
+	if(upnp == NULL)
+	    return;
+	if(upnp->sock >= 0){
+	    Acceptor *a = new Acceptor(this, upnp->sock);
+	    if(a != NULL){
+		ml->selector->add(a);
+		if(upnp->wan_ipaddr != NULL && upnp->wan_port != NULL){
+		    printf("listning %s:%s with UPNP\n", upnp->wan_ipaddr, upnp->wan_port);
+		}else if(upnp->local_ipaddr != NULL){
+		    printf("listning %s:%d without upnp\n", upnp->local_ipaddr, upnp->local_port);
+		}
+	    }
+	}
+	ServiceManager *sm = new ServiceManager("SystemData");
+	sm->addWritePort("stdout");
+	sm->addServiceCreator(new SysDataSenderCreator(), this);
+	mainLoop->addServiceManager(sm);
+    }
+
+    void SysDataHolder::onAccept(int fd){
+	char *data = getNowStatusXML();
+
+	send(fd, data, (int)strlen(data), 0);
+	closeSocket(fd);
+    }
+
+    char *SysDataHolder::getNowStatusXML(){
+	static char buf[40960];
+	char *p = buf;
+	p += sprintf(p, "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+	p += sprintf(p, "MainLoop: %p\n\n", mainLoop);
+	if(mainLoop == NULL)
+	    return buf;
+#ifdef HAVE_TIMEGETTIME
+	DWORD dw = timeGetTime();
+	p += sprintf(p, "timeGetTime: %f\n\n", dw / 100.0);
+#else
+	struct timeval tv;
+	if(gettimeofday(&tv, NULL) == 0){
+	    p += sprintf(p, "gettimeofday: %d.%06d\n\n", tv.tv_sec, tv.tv_usec);
+	}
+#endif
+	p += sprintf(p, "upnp->sock: %d\n", mainLoop->upnp->sock);
+	p += sprintf(p, "upnp->wan_ipaddr: %s\n", mainLoop->upnp->wan_ipaddr == NULL ? "(null)" : mainLoop->upnp->wan_ipaddr);
+	p += sprintf(p, "upnp->wan_port: %s\n", mainLoop->upnp->wan_port == NULL ? "(null)" : mainLoop->upnp->wan_port);
+	p += sprintf(p, "upnp->local_ipaddr: %s\n", mainLoop->upnp->local_ipaddr == NULL ? "(null)" : mainLoop->upnp->local_ipaddr);
+	p += sprintf(p, "upnp->local_port: %d\n", mainLoop->upnp->local_port);
+	p += sprintf(p, "upnp->IGD_control_url: %s\n", mainLoop->upnp->IGD_control_url == NULL ? "(null)" : mainLoop->upnp->IGD_control_url);
+	p += sprintf(p, "upnp->IGD_service_type: %s\n\n", mainLoop->upnp->IGD_service_type == NULL ? "(null)" : mainLoop->upnp->IGD_service_type);
+	p += sprintf(p, "serviceManagerList.size(): %d\n", mainLoop->serviceManagerList.size());
+	int num = 1;
+	for(MainLoop::ServiceManagerList::iterator i = mainLoop->serviceManagerList.begin(); i != mainLoop->serviceManagerList.end(); i++, num++){
+	    p += sprintf(p, "%2d: serviceName: %s\n", num, (*i)->serviceName);
+	    p += sprintf(p, "    serviceCreator: %p\n", (*i)->creator);
+	    p += sprintf(p, "    creatorUserData: %p\n", (*i)->creatorUserData);
+	    for(ServiceManager::ReadPortMap::iterator j = (*i)->readPortMap.begin(); j != (*i)->readPortMap.end(); j++){
+		if(j->second == NULL)
+		    continue;
+		p += sprintf(p, "    ReadPort: %s  Description: %s\n", j->second->portName == NULL ? "(null)" : j->second->portName,
+			     j->second->description == NULL ? "(null)" : j->second->description);
+	    }
+	    for(ServiceManager::WritePortMap::iterator j = (*i)->writePortMap.begin(); j != (*i)->writePortMap.end(); j++){
+		if(j->second == NULL)
+		    continue;
+		p += sprintf(p, "    WritePort: %s  Description: %s\n", j->second->portName == NULL ? "(null)" : j->second->portName,
+			     j->second->description == NULL ? "(null)" : j->second->description);
+	    }
+	    for(ServiceManager::FDInputMap::iterator j = (*i)->fdInputMap.begin(); j != (*i)->fdInputMap.end(); j++){
+		if(j->second == NULL)
+		    continue;
+		p += sprintf(p, "    FDInput: %d  Description: %s\n", j->second->fd,
+			     j->second->description == NULL ? "(null)" : j->second->description);
+	    }
+	}
+	p += sprintf(p, "\nactivePipeMap.size() %d\n", mainLoop->activePipeMap.size());
+	num = 1;
+	for(MainLoop::string2ActivePipeMap::iterator i = mainLoop->activePipeMap.begin(); i != mainLoop->activePipeMap.end(); i++, num++){
+	    p += sprintf(p, "%2d: key: %s\n", num, i->first.c_str());
+	    p += sprintf(p, "    ActivePipe: %p\n", i->second);
+	    if(i->second == NULL)
+		continue;
+	    p += sprintf(p, "    service: %p\n", i->second->service);
+	    p += sprintf(p, "    pipeManager: %p\n", i->second->pipeManager);
+	    p += sprintf(p, "    pipeManager->serviceName %s\n", i->second->pipeManager->serviceName == NULL ? "(null)" : i->second->pipeManager->serviceName);
+	}
+
+	p += sprintf(p, "\nFDselector %p\n", mainLoop->selector);
+	if(mainLoop->selector != NULL){
+	    p += sprintf(p, "  readerMap.size(): %d\n", mainLoop->selector->rlmap.size());
+	    num = 1;
+	    for(FDSelector::streamReaderListMap::iterator i = mainLoop->selector->rlmap.begin(); i != mainLoop->selector->rlmap.end(); i++, num++){
+		p += sprintf(p, "   readerNo: %d (fd: %d) queueNum: %d\n", num, i->first, i->second.size());
+		int listNum = 1;
+		for(FDSelector::streamReaderList::iterator j = i->second.begin(); j != i->second.end(); j++, listNum++){
+		    p += sprintf(p, "    queue %d: %s\n", listNum, (*j)->getName());
+		    
+		}
+	    }
+
+	    p += sprintf(p, "  writerMap.size(): %d\n", mainLoop->selector->wlmap.size());
+	    num = 1;
+	    for(FDSelector::streamWriterListMap::iterator i = mainLoop->selector->wlmap.begin(); i != mainLoop->selector->wlmap.end(); i++, num++){
+		p += sprintf(p, "   writerNo: %d (fd: %d) queueNum: %d\n", num, i->first, i->second.size());
+		int listNum = 1;
+		for(FDSelector::streamWriterList::iterator j = i->second.begin(); j != i->second.end(); j++, listNum++){
+		    p += sprintf(p, "    queue %d: %s\n", listNum, (*j)->getName());
+		    
+		}
+	    }
+	}
+	return buf;
+    }
+};
+

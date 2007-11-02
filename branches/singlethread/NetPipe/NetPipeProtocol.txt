@@ -1,0 +1,146 @@
+$Id: NetPipeProtocol.txt 85 2007-07-05 10:10:05Z  $
+
+NetPipe 製作メモ。
+
+accept() された直後に一回だけ "NetPipe 1.0" という文字列が流れる。
+これが流れないと切断される。
+
+その後に流れてるヘッダはこんな感じ
+
+uint32_t 全体のバイト数
+uint32_t 0: 通常のデータ 1: このデータの送信をもってこの接続は終了。
+uint32_t ヘッダのバイト数
+ヘッダ
+ユーザデータ
+
+で、ヘッダの中身は '\n' でセパレートされた文字列で、。
+InPort;ServiceName
+ServiceName;OutPort;InPort;ServiceName
+ServiceName;OutPort;InPort;ServiceName
+ServiceName;OutPort;InPort;ServiceName
+ServiceName;OutPort;InPort;ServiceName
+ServiceName;OutPort;InPort;ServiceName
+ServiceName;OutPort;InPort;ServiceName
+ServiceName;OutPort;InPort;ServiceName
+というようになっている。(なってなきゃ駄目)
+一番上の行は、そのデータ列を受け取った相手のServiceNameとInPortNameが指定されている。
+これが無いと複数入力のサービスの場合どのサービスに接続に来たのかがわからない。
+(逆に言うと送ってきた相手が誰であるかを認識せずに、自分の受けるべきポートだけを把握する)
+二番目の行からはそれぞれのサービスの出力ポートとその出力ポートに対する入力ポートの対。
+一つの出力ポートから複数の入力ポートへと接続したい場合には同じ出力ポートの行を複数行記述する。
+そして、二行目以降最後の行までが文字列としてデータ列のkeyとしている。
+このkeyをNetPipePath(PipePath)と呼ぶ。
+ということでこれらの行の書かれている順番を変えただけで別のNetPipePathとなる。
+
+たとえば、UserAとUserBの音声入力をMixerで混ぜてそれぞれのスピーカーに出すNetPipePathはこんな感じになる。
+
+UserAAudioRecord;SoundOut;SoundIn;Mixer
+UserBAudioRecord;SoundOut;SoundIn;Mixer
+Mixer;SoundOut;SoundIn;UserASpearker
+Mixer;SoundOut;SoundIn;UserBSpearker
+
+一番上の行(上の例では省略されている)で入力すべきデータが無い場合
+(上の例ではUserAAudioRecordサービスへのリクエストの場合など)では、
+最初の行は ";サービス名\n" というように、サービス名はあるが、
+入力ポート名が存在しない行になるはずである。
+
+拡張：
+	サービス名はスペース(' ')以降はそのサービスへの引数として考えられる。
+	これは、sh というサービスが wget -qO - http://www.naist.jp/ という引数を与えられて起動する、
+	といったような時に有効である。
+	引数が必要ない場合は ' ' を入れなければ良い。
+	これによって変更が加えられるのは サービス検索 と ユーザ側イベントハンドラ だけである。
+	(サービス検索に用いられる文字列で ' ' が入っていたらそれ以降を無視して検索する事と
+	イベントハンドラにサービス名のほかにその引数という引数が増える)
+	NetPipePath が同じならば一つのトポロジである、という概念には変更は起こらない。
+
+変更：
+	一つのサービスはそのNetPipePathをkeyにして接続を管理することはやめた。
+	現在でのKeyは引数を含んだサービス名そのものである。
+	("sh cat > /dev/null" と "sh cat /etc/password" は別サービスとして考えられる)
+
+
+で、それらのサービスが登録されているデータもまた、
+テキストで行思考になっている。
+
+それぞれの行はTABで区切られたTSVで、
+最初のカラムでその属性を示す。
+
+i: InputPortの定義
+  i, サービス名, ポート名, ポート名, ポート名, ...
+o: OutputPortの定義
+  o, サービス名, ポート名, ポート名, ポート名, ...
+p: 実際に待ち受けている IPv4 アドレスと TCP Port
+  p, サービス名, IPv4Addr(resolvできる名前でも可), TCP Port(/etc/services に乗ってる名前でも可)
+
+また、これらのデータで同じサービス名から引ける物は、最後に書かれているものを参照すべし。
+(単に送られたデータを追記で書いてるだけなので、最後のものを見ないと駄目ってだけ)
+
+また、各サービスdaemonは p のIPアドレスとポート番号の行しか必要ないので p の行しか参照しない。
+逆にNetPipePathを定義し、それらを接続させるshellにあたるものは全てのデータを参照する必要がある。
+
+
+
+
+使用例：
+
+そのいち
+
+sh ls;stdout;stdin;sh cat > hoge.txt
+
+sh というサービスは引数をそのまま popen(3) して、
+そのshell processから読み込んだものを stdout port へ、
+stdin port から読み込んだものを shell process へと書き込む。
+このとき、引数が違う場合は(内部でそれを判断して)別の読み込み書き込みと判断して動作する。
+
+ということで、ls | cat > hoge.txt と書いたことと同じようになる。
+
+
+そのに
+
+sh ls -l;stdout;stdin;sh cat > hoge.txt
+sh tail /var/log/messages;stdout;stdin;sh cat > hoge.txt
+
+ls -l と tail /var/log/messages の結果をまとめて hoge.txt に記録する
+
+これは、cat > hoge.txt は同じ引数として考えられるので、
+ls -l と tail /var/log/messages の入力が同じ cat > hoge.txt への入力と解釈されるためである。
+
+
+そのさん
+
+sh ls -l;stdout;stdin;sh cat > a.txt
+sh ls -l;stdout;stdin;sh cat > b.txt
+
+ls -l の結果が a.txt と b.txt の二つに記録される。
+
+これは、同じサービスの同じ出力ポート sh cat;stdout が二つあることから
+ライブラリ側が勝手に二つのサービス(sh cat > a.txt と sh cat > b.txt)の両方に
+データを送るためである。
+
+
+そのよん
+
+sh ls -l;stdout;stdin;sh cat
+sh cat;stdout;stdin;sh cat > a.txt
+sh cat;stdout;stdin;sh cat > b.txt
+
+これでも同様にa.txtとb.txt両方に ls -l の結果が入る。
+
+
+そのご
+
+sh tail /etc/passwd /etc/skeykeys;stdout;stdin;cat > stdout.txt
+sh tail /etc/passwd /etc/skeykeys;stderr;stdin;cat > stderr.txt
+
+
+
+
+
+
+すたぁべっどメモ。
+・static char buf[40960]; とかで確保して、溢れることないだろ、とかゆーのは全部迷信。
+　大規模になったらすぐ溢れる。
+・WebAccessにしろなんにしろ retry 重要。
+　溢れたりして一回であきらめると結局動けなくなる。
+
