@@ -27,9 +27,11 @@
 
 #include "config.h"
 #include "ServiceManager.h"
+#include "FDSelector.h"
 #include "net.h"
+#include "Acceptor.h"
+#include "PortWriter.h"
 #include "PipeManager.h"
-#include "tools.h"
 
 #define NETPIPE_HEADER_BUFFER_LENGTH (1024)
 

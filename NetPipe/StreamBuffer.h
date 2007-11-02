@@ -44,8 +44,7 @@ namespace NetPipe {
 	void setHeader(char *buf, size_t length);
 
     public:
-	StreamBuffer(size_t bufSize = 1024);
-	StreamBuffer(char *buf, size_t bufSize);
+	StreamBuffer(size_t bufsize = 1024);
 	~StreamBuffer();
 
 	/*
@@ -87,9 +86,8 @@ namespace NetPipe {
 
 	char *getBuffer(size_t *size_return = NULL);
 	size_t getSize();
-	void clearBuffer(); // バッファの中身を空にする
+	void clearBuffer();
 	StreamBuffer *dup();
-	void releaseBuffer(); // 確保されているバッファの管理をやめる(getBuffer() で拾った buffer の free() をしなくなる)
     };
 };
 

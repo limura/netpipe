@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id$
+ * $Id: VersionChecker.h 58 2007-07-04 06:03:18Z  $
  */
 
 
@@ -71,7 +71,7 @@ namespace NetPipeDotNET {
 
     void Kicker::kick(System::String ^pipePath){
 	if(original != NULL){
-	    char *mStr = static_cast<char*>((System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(pipePath)).ToPointer());
+	    char *mStr = static_cast<char*>((System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(pipePath)).ToPointer());static_cast<const char*>((System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(pipePath)).ToPointer());
 	    original->kick(mStr);
 	    System::Runtime::InteropServices::Marshal::FreeHGlobal(System::IntPtr((void *)mStr));
 	}

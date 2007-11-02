@@ -22,66 +22,49 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: PipeManager.h 50 2007-07-03 00:25:15Z  $
+ * $Id: FDReader.cpp 85 2007-07-05 10:10:05Z  $
  */
 
-#ifndef NETPIPE_PIPEMANAGER_H
-#define NETPIPE_PIPEMANAGER_H
+#include "config.h"
+#include "FDReader.h"
+#include "Service.h"
 
-#include "FDSelector.h"
-#include "StreamBuffer.h"
-
-#include <map>
-#include <list>
-#include <string>
+#include <stdlib.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
 
 namespace NetPipe {
-    class MainLoop;
-    class Service;
-    class SysDataHolder;
-    class PipeManager {
-	friend class MainLoop;
-	friend class SysDataHolder;
-    private:
-	char *pipePath;
-	char *serviceName;
-	FDSelector *selector;
-	Service *service;
-	int inputSockNum;
-	MainLoop *parent;
+    FDReader::FDReader(int inFD, size_t size, Service *serv, PipeManager *parent){
+	static char name[] = "FDReader";
+	myName = name;
+	buf = (char *)malloc(size);
+	if(buf == NULL)
+	    throw "no more memory";
+	bufsize = size;
+	fd = inFD;
+	targetService = serv;
+	pipeManager = parent;
+    }
 
-	typedef struct {
-	    int sock;
-	    char *PortService;
-	} PortService;
-	typedef std::list<PortService *> portServiceList;
-	typedef struct {
-	    portServiceList nextPortService;
-	    StreamBuffer *buf;
-	} WritePort;
+    FDReader::~FDReader(){
+	if(fd >= 0)
+	    close(fd);
+    }
 
-	typedef std::map<std::string, WritePort *> string2WritePortMap;
-	string2WritePortMap writePortMap;
+    bool FDReader::onRecive(){
+	int ret = read(fd, buf, (size_t)bufsize);
+	if(ret <= 0){
+	    if(targetService != NULL)
+		targetService->onEvent(pipeManager, NULL, NULL, Service::FD_DOWN, NULL, 0);
+	    return false;
+	}
+	if(targetService != NULL)
+	    targetService->onEvent(pipeManager, NULL, NULL, Service::FD_INPUT, buf, ret);
+	return true;
+    }
 
-	void addWritePort(char *portName, int fd, char *nextPortService);
-	void inclimentInputPort();
-	void declimentInputPort(char *portName);
-
-    public:
-	enum {
-	    PORT_ACTION_NORMAL = 0,
-	    PORT_ACTION_CLOSE = 1,
-	};
-	PipeManager(FDSelector *selector, char *thisPipePath, char *serviceName, Service *service, MainLoop *ml);
-	~PipeManager();
-
-	void addReadFD(int fd, size_t bufsize = 4096);
-	bool write(char *portName, char *buf, size_t size);
-	StreamBuffer *getWriteBuffer(char *portName);
-	bool commit(char *portName);
-	void exit();
-    };
 }; /* namespace NetPipe */
-
-#endif /* NETPIPE_PIPEMANAGER_H */
-

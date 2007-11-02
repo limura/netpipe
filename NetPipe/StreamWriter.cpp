@@ -22,38 +22,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: VersionChecker.h 58 2007-07-04 06:03:18Z  $
+ * $Id: StreamWriter.cpp 51 2007-07-04 01:22:02Z  $
  */
 
+#include "config.h"
+#include "StreamWriter.h"
 
-#include "stdafx.h"
-
-#include "NetPipe.NET.h"
-#include <MainLoop.h>
-
-namespace NetPipeDotNET {
-    /* MainLoop Wrapper */
-    MainLoop::MainLoop(){
-	UmMainLoop = new NetPipe::MainLoop();
+namespace NetPipe {
+    StreamWriter::StreamWriter(){
+	fd = -1;
+	myName = NULL;
     }
-    MainLoop::~MainLoop(){
-	this->!MainLoop();
+    char *StreamWriter::getName(){
+	return myName;
     }
-    MainLoop::!MainLoop(){
-	if(UmMainLoop != NULL)
-	    delete UmMainLoop;
+    int StreamWriter::getFD(){
+	return fd;
     }
-    void MainLoop::addServiceManager(NetPipeDotNET::ServiceManager ^sm){
-	if(UmMainLoop != NULL){
-	    UmMainLoop->addServiceManager(sm->getUnmanagedObject());
-	}
-    }
-    void MainLoop::run(int usec){
-	if(UmMainLoop != NULL)
-	    UmMainLoop->run(usec);
-    }
-    void MainLoop::run(){
-	if(UmMainLoop != NULL)
-	    UmMainLoop->run(0);
-    }
-}; /* namespace NetPipeDotNET */
+}; /* namespace NetPipe */

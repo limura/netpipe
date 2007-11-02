@@ -22,38 +22,37 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: VersionChecker.h 58 2007-07-04 06:03:18Z  $
+ * $Id: VersionChecker.cpp 95 2007-07-06 07:08:18Z  $
  */
 
+#include "VersionChecker.h"
+#include "MainLoop.h"
 
-#include "stdafx.h"
+namespace NetPipe {
+    VersionChecker::VersionChecker(MainLoop *ml, int FD){
+	parent = ml;
+	fd = FD;
+	static char name[] = "VersionChecker";
+	myName = name;
+    }
+    VersionChecker::~VersionChecker(){
+    }
 
-#include "NetPipe.NET.h"
-#include <MainLoop.h>
-
-namespace NetPipeDotNET {
-    /* MainLoop Wrapper */
-    MainLoop::MainLoop(){
-	UmMainLoop = new NetPipe::MainLoop();
-    }
-    MainLoop::~MainLoop(){
-	this->!MainLoop();
-    }
-    MainLoop::!MainLoop(){
-	if(UmMainLoop != NULL)
-	    delete UmMainLoop;
-    }
-    void MainLoop::addServiceManager(NetPipeDotNET::ServiceManager ^sm){
-	if(UmMainLoop != NULL){
-	    UmMainLoop->addServiceManager(sm->getUnmanagedObject());
+    bool VersionChecker::onRecive(){
+	char buf[1024];
+	int len = recv(fd, buf, strlen(NETPIPE_HELLO_STRING), 0);
+	if(len <= 0){
+	    closeSocket(fd);
+	    return false;
 	}
+	buf[len] = '\0';
+	if(len == (int)strlen(NETPIPE_HELLO_STRING) &&
+	    strncmp(buf, NETPIPE_HELLO_STRING, len) == 0){
+		parent->onAcceptValidConnection(fd);
+	    return false;
+	}
+	printf("version check error. close socket.\n");
+	closeSocket(fd);
+	return false;
     }
-    void MainLoop::run(int usec){
-	if(UmMainLoop != NULL)
-	    UmMainLoop->run(usec);
-    }
-    void MainLoop::run(){
-	if(UmMainLoop != NULL)
-	    UmMainLoop->run(0);
-    }
-}; /* namespace NetPipeDotNET */
+};

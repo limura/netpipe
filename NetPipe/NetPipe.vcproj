@@ -156,7 +156,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\FDWatcher.cpp"
+				RelativePath=".\Acceptor.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FDReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FDSelector.cpp"
 				>
 			</File>
 			<File
@@ -176,6 +184,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PortReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\PortWriter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ServiceDB.cpp"
 				>
 			</File>
@@ -188,11 +204,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SysDataHolder.cpp"
+				RelativePath=".\StreamReader.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\thread.c"
+				RelativePath=".\StreamWriter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SysDataHolder.cpp"
 				>
 			</File>
 			<File
@@ -201,6 +221,10 @@
 			</File>
 			<File
 				RelativePath=".\upnp.c"
+				>
+			</File>
+			<File
+				RelativePath=".\VersionChecker.cpp"
 				>
 			</File>
 			<Filter
@@ -218,11 +242,19 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\Acceptor.h"
+				>
+			</File>
+			<File
 				RelativePath=".\config.h"
 				>
 			</File>
 			<File
-				RelativePath=".\FDWatcher.h"
+				RelativePath=".\FDReader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FDSelector.h"
 				>
 			</File>
 			<File
@@ -246,6 +278,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PortReader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\PortWriter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Service.h"
 				>
 			</File>
@@ -266,11 +306,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SysDataHolder.h"
+				RelativePath=".\StreamReader.h"
 				>
 			</File>
 			<File
-				RelativePath=".\thread.h"
+				RelativePath=".\StreamWriter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SysDataHolder.h"
 				>
 			</File>
 			<File
@@ -279,6 +323,10 @@
 			</File>
 			<File
 				RelativePath=".\upnp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\VersionChecker.h"
 				>
 			</File>
 			<Filter

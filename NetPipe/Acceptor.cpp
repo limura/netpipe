@@ -22,38 +22,37 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: VersionChecker.h 58 2007-07-04 06:03:18Z  $
+ * $Id: Acceptor.cpp 51 2007-07-04 01:22:02Z  $
  */
 
+#include "config.h"
+#include "MainLoop.h"
+#include "Acceptor.h"
+#include "net.h"
 
-#include "stdafx.h"
+#include <stdio.h>
 
-#include "NetPipe.NET.h"
-#include <MainLoop.h>
+namespace NetPipe {
+    Acceptor::Acceptor(AcceptEventHandler *p, int sock){
+	if(p == NULL || sock < 0)
+	    throw "invalid data";
+	static char name[] = "Acceptor";
+	myName = name;
+	fd = sock;
+	parent = p;
+    }
 
-namespace NetPipeDotNET {
-    /* MainLoop Wrapper */
-    MainLoop::MainLoop(){
-	UmMainLoop = new NetPipe::MainLoop();
+    Acceptor::~Acceptor(){
+	if(fd >= 0)
+	    closeSocket(fd);
     }
-    MainLoop::~MainLoop(){
-	this->!MainLoop();
+
+    bool Acceptor::onRecive(){
+printf("Acceptor: onRecive. accept(%d, NULL, 0)\n", fd);
+	int sock = (int)accept(fd, NULL, 0);
+	if(sock < 0)
+	    return false;
+	parent->onAccept(sock);
+	return true;
     }
-    MainLoop::!MainLoop(){
-	if(UmMainLoop != NULL)
-	    delete UmMainLoop;
-    }
-    void MainLoop::addServiceManager(NetPipeDotNET::ServiceManager ^sm){
-	if(UmMainLoop != NULL){
-	    UmMainLoop->addServiceManager(sm->getUnmanagedObject());
-	}
-    }
-    void MainLoop::run(int usec){
-	if(UmMainLoop != NULL)
-	    UmMainLoop->run(usec);
-    }
-    void MainLoop::run(){
-	if(UmMainLoop != NULL)
-	    UmMainLoop->run(0);
-    }
-}; /* namespace NetPipeDotNET */
+};

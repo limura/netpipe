@@ -22,66 +22,26 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: PipeManager.h 50 2007-07-03 00:25:15Z  $
+ * $Id: VersionChecker.h 58 2007-07-04 06:03:18Z  $
  */
 
-#ifndef NETPIPE_PIPEMANAGER_H
-#define NETPIPE_PIPEMANAGER_H
+#ifndef NETPIPE_VIRSIONCHECKER_H
+#define NETPIPE_VIRSIONCHECKER_H
 
-#include "FDSelector.h"
-#include "StreamBuffer.h"
+#include "StreamReader.h"
+#include "MainLoop.h"
 
-#include <map>
-#include <list>
-#include <string>
+#define NETPIPE_HELLO_STRING "NetPipe 1.0"
 
 namespace NetPipe {
-    class MainLoop;
-    class Service;
-    class SysDataHolder;
-    class PipeManager {
-	friend class MainLoop;
-	friend class SysDataHolder;
+    class VersionChecker : public StreamReader {
     private:
-	char *pipePath;
-	char *serviceName;
-	FDSelector *selector;
-	Service *service;
-	int inputSockNum;
 	MainLoop *parent;
-
-	typedef struct {
-	    int sock;
-	    char *PortService;
-	} PortService;
-	typedef std::list<PortService *> portServiceList;
-	typedef struct {
-	    portServiceList nextPortService;
-	    StreamBuffer *buf;
-	} WritePort;
-
-	typedef std::map<std::string, WritePort *> string2WritePortMap;
-	string2WritePortMap writePortMap;
-
-	void addWritePort(char *portName, int fd, char *nextPortService);
-	void inclimentInputPort();
-	void declimentInputPort(char *portName);
-
     public:
-	enum {
-	    PORT_ACTION_NORMAL = 0,
-	    PORT_ACTION_CLOSE = 1,
-	};
-	PipeManager(FDSelector *selector, char *thisPipePath, char *serviceName, Service *service, MainLoop *ml);
-	~PipeManager();
-
-	void addReadFD(int fd, size_t bufsize = 4096);
-	bool write(char *portName, char *buf, size_t size);
-	StreamBuffer *getWriteBuffer(char *portName);
-	bool commit(char *portName);
-	void exit();
+	VersionChecker(MainLoop *ml, int fd);
+	virtual ~VersionChecker();
+	bool onRecive();
     };
 }; /* namespace NetPipe */
 
-#endif /* NETPIPE_PIPEMANAGER_H */
-
+#endif /* NETPIPE_VIRSIONCHECKER_H */

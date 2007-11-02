@@ -26,12 +26,11 @@
  */
 
 #include "config.h"
-#include "MainLoop.h"
 #include "Kicker.h"
 #include "ServiceDB.h"
 #include "net.h"
 #include "StreamBuffer.h"
-#include "tools.h"
+#include "VersionChecker.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -118,12 +117,12 @@ CONTINUE:
 	    char *port = db->QueryTCPPortName((char *)i->first.c_str());
 
 	    if(targetService == NULL || IPaddr == NULL || port == NULL){
-		DPRINTF(10, ("can not find service name(%s) or IPaddr:port (%s:%s)\n", targetService, IPaddr, port));
+		printf("can not find service name(%s) or IPaddr:port (%s:%s)\n", targetService, IPaddr, port);
 		continue;
 	    }
 	    if(targetPort == NULL)
 		targetPort = "";
-	    DPRINTF(10, ("  %s:%s <- %s;%s\n", IPaddr, port, targetPort, targetService));
+	    printf("  %s:%s <- %s;%s\n", IPaddr, port, targetPort, targetService);
 	    int sock = connect_stream(IPaddr, port);
 	    if(sock < 0)
 		continue;
@@ -134,7 +133,7 @@ CONTINUE:
 		throw "no more memory";
 
 	    sm->WriteBinary(NETPIPE_HELLO_STRING, strlen(NETPIPE_HELLO_STRING));
-	    sm->WriteInt32(size);
+	    sm->WriteUint32(size);
 	    sm->WriteUint32(0);
 	    sm->WriteUint32(size - sizeof(uint32_t) * 2);
 	    sm->WriteBinary(targetPort, strlen(targetPort));

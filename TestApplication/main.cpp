@@ -30,18 +30,16 @@
 #include <tools.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <map>
-#include <string>
 
 #ifndef _WIN32
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#else
+#endif
+#ifdef HAVE_PROCESS_H
 #include <process.h>
-#include <io.h>
 #endif
 
 void test_ServiceDB(){
@@ -90,7 +88,7 @@ public:
 
 class ShService : public NetPipe::Service {
 private:
-    typedef std::map<std::string, int> ShFDMap;
+    typedef std::map<string, int> ShFDMap;
     ShFDMap shFDMap;
     int callnum;
 public:
@@ -292,7 +290,6 @@ private:
 public:
     void onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
 	NetPipe::Service::EVENT_TYPE type, char *buf, size_t size){
-	    DPRINTF(10, ("DevNull recv.\n"));
 	switch(type){
 	    case NetPipe::Service::RECV:
 #ifndef HAVE_TIMEGETTIME
@@ -306,7 +303,6 @@ public:
 #endif
 		break;
 	    case NetPipe::Service::RECV_DOWN:
-		DPRINTF(10, ("DevNull got RECV_DOWN. exit\n"));
 		printf("DevNull got RECV_DOWN. exit\n");
 		pm->exit();
 		break;
@@ -413,7 +409,7 @@ int main(int argc, char *argv[]){
     sm->addServiceCreator(new DevNullCreator());
     ml->addServiceManager(sm);
 
-    ml->run(100000);
+    ml->run();
 
     return 0;
 }

@@ -35,15 +35,12 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef _WIN32
-#include <io.h>
-#endif
 
 int main(int argc, char *argv[]){
     char *buf, *line, *p;
     size_t bufSize = 0;
     int fd, len;
-    char *targetFile = "..\\debug\\kicker.txt";
+    char *targetFile = "kicker.txt";
     NetPipe::Kicker *k = new NetPipe::Kicker();
     struct stat st;
 

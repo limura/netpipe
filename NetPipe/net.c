@@ -48,11 +48,15 @@
 #ifdef HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
 #endif
+#include <stdlib.h>
+
+#include <sys/types.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#include <stdlib.h>
-#include <sys/types.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <string.h>
 
 #include "net.h"
@@ -505,10 +509,7 @@ int HTTP_connect(char *url, char **file){
 	}else{
 		if(p2 != NULL && p2 < p){
 			port = "80";
-			p = p2 + 1;
-			memcpy(hostBuf, url, p2 - url);
-			hostBuf[p2 - url] = '\0';
-			host = hostBuf;
+			p = p2;
 		}else{
 			memcpy(hostBuf, host, p - host);
 			hostBuf[p - host] = '\0';
@@ -535,12 +536,12 @@ int HTTP_connect(char *url, char **file){
 	return connect_stream(host, port);
 }
 
-/* HTTP client のやる気の無い実装。
+/* HTTP client のやる気の無い実装。送信バッファは固定長で溢れた分は捨てられるので気をつけよう。
  * postData == NULL か postLen が 0 なら GET Request を投げる。
  * 返り値は読み込んだバッファそのもの(ヘッダも入ってる) size_return bytes だけのデータが入ってる。
  * 返されたバッファが NULL でなかったら受け取った側が free() しなければならない。*/
 char *HTTP_post(char *url, char *postData, size_t postLen, char *header, int *size_return){
-	char sendBuf[4096];
+	char sendBuf[10240];
 	char *retBuf = NULL;
 	size_t retBufSize = 0;
 	char *p;
@@ -565,10 +566,8 @@ char *HTTP_post(char *url, char *postData, size_t postLen, char *header, int *si
 	sendBuf[0] = '0';
 	if(postLen > 0)
 		strncpy(sendBuf, "POST /", sizeof(sendBuf));
-	else{
+	else
 		strncpy(sendBuf, "GET /", sizeof(sendBuf));
-		postData = NULL;
-	}
 	strncat(sendBuf, file, sizeof(sendBuf));
 	strncat(sendBuf, " HTTP/1.0\r\n", sizeof(sendBuf));
 	if(header != NULL)
@@ -592,12 +591,16 @@ char *HTTP_post(char *url, char *postData, size_t postLen, char *header, int *si
 
 	strncat(sendBuf, "\r\n", sizeof(sendBuf));
 	sendLen = strlen(sendBuf);
-
-	if(send(sock, sendBuf, sendLen, 0) < 0){
-		closeSocket(sock);
-		return NULL;
+	if(postLen > 0 && postData != NULL){
+		if(sizeof(sendBuf) < sendLen + postLen){
+			closeSocket(sock);
+			return NULL;
+		}
+		memcpy(&sendBuf[sendLen], postData, postLen);
+		sendLen += postLen;
 	}
-	if(postLen > 0 && send(sock, postData, postLen, 0) < 0){
+
+	if(send(sock, sendBuf, (int)strlen(sendBuf), 0) < 0){
 		closeSocket(sock);
 		return NULL;
 	}

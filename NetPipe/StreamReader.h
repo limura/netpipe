@@ -22,66 +22,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: PipeManager.h 50 2007-07-03 00:25:15Z  $
+ * $Id: StreamReader.h 51 2007-07-04 01:22:02Z  $
  */
 
-#ifndef NETPIPE_PIPEMANAGER_H
-#define NETPIPE_PIPEMANAGER_H
-
-#include "FDSelector.h"
-#include "StreamBuffer.h"
-
-#include <map>
-#include <list>
-#include <string>
+#ifndef NETPIPE_STREAMREADER_H
+#define NETPIPE_STREAMREADER_H
 
 namespace NetPipe {
-    class MainLoop;
-    class Service;
-    class SysDataHolder;
-    class PipeManager {
-	friend class MainLoop;
-	friend class SysDataHolder;
+    class StreamReader {
     private:
-	char *pipePath;
-	char *serviceName;
-	FDSelector *selector;
-	Service *service;
-	int inputSockNum;
-	MainLoop *parent;
-
-	typedef struct {
-	    int sock;
-	    char *PortService;
-	} PortService;
-	typedef std::list<PortService *> portServiceList;
-	typedef struct {
-	    portServiceList nextPortService;
-	    StreamBuffer *buf;
-	} WritePort;
-
-	typedef std::map<std::string, WritePort *> string2WritePortMap;
-	string2WritePortMap writePortMap;
-
-	void addWritePort(char *portName, int fd, char *nextPortService);
-	void inclimentInputPort();
-	void declimentInputPort(char *portName);
+    protected:
+	int fd;
+	char *myName;
 
     public:
-	enum {
-	    PORT_ACTION_NORMAL = 0,
-	    PORT_ACTION_CLOSE = 1,
-	};
-	PipeManager(FDSelector *selector, char *thisPipePath, char *serviceName, Service *service, MainLoop *ml);
-	~PipeManager();
+	StreamReader();
+	int getFD();
+	char *getName();
 
-	void addReadFD(int fd, size_t bufsize = 4096);
-	bool write(char *portName, char *buf, size_t size);
-	StreamBuffer *getWriteBuffer(char *portName);
-	bool commit(char *portName);
-	void exit();
+	virtual bool onRecive() = 0;
     };
 }; /* namespace NetPipe */
 
-#endif /* NETPIPE_PIPEMANAGER_H */
+#endif /* NETPIPE_STREAMREADER_H */
 

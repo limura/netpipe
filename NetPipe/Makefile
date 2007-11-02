@@ -1,7 +1,7 @@
  # Copyright (c) 2007 IIMURA Takuji. All rights reserved.
  #
  # Redistribution and use in source and binary forms, with or without
- # modification, are permitted provided that the following conditionscc
+ # modification, are permitted provided that the following conditions
  # are met:
  # 1. Redistributions of source code must retain the above copyright
  #    notice, this list of conditions and the following disclaimer.
@@ -27,11 +27,13 @@ CC = gcc
 AR = ar
 RANLIB = ranlib
 
-SRCS = StreamBuffer.cpp
-SRCS += Kicker.cpp MainLoop.cpp ServiceDB.cpp
-SRCS += ServiceManager.cpp FDWatcher.cpp PipeManager.cpp
-SRCS += SysDataHolder.cpp
-CSRCS = net.c tools.c upnp.c thread.c
+SRCS = Acceptor.cpp PortReader.cpp StreamBuffer.cpp
+SRCS += Kicker.cpp PortWriter.cpp StreamReader.cpp
+SRCS += MainLoop.cpp ServiceDB.cpp StreamWriter.cpp
+SRCS += FDReader.cpp ServiceManager.cpp
+SRCS += FDSelector.cpp PipeManager.cpp SysDataHolder.cpp
+SRCS += VersionChecker.cpp
+CSRCS = net.c tools.c upnp.c
 
 TARGET = libNetPipe.a
 CFLAGS = -g -O -Wall -DDEBUG -Wuninitialized -pg

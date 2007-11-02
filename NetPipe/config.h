@@ -241,8 +241,7 @@
 #define _LIBCOOKAI_WINDOWS_
 #define DEBUG
 
-//#define _CRT_SECURE_NO_DEPRECATE /* for warning C4996 (_read _write _close and so on) */
-#pragma warning ( disable : 4996 )
+#define _CRT_SECURE_NO_DEPRECATE /* for warning C4996 (_read _write _close and so on) */
 
 #undef HAVE_SYS_TIME_H
 #undef HAVE_UNISTD_H

@@ -22,66 +22,85 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: PipeManager.h 50 2007-07-03 00:25:15Z  $
+ * $Id: FDSelector.h 50 2007-07-03 00:25:15Z  $
  */
 
-#ifndef NETPIPE_PIPEMANAGER_H
-#define NETPIPE_PIPEMANAGER_H
+#ifndef NETPIPE_FDSELECTOR_H
+#define NETPIPE_FDSELECTOR_H
 
-#include "FDSelector.h"
-#include "StreamBuffer.h"
+#include "config.h"
+#include "StreamReader.h"
+#include "StreamWriter.h"
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
+#include <stdlib.h>
+#include <sys/types.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
 
 #include <map>
 #include <list>
-#include <string>
+
+using namespace std;
 
 namespace NetPipe {
-    class MainLoop;
-    class Service;
     class SysDataHolder;
-    class PipeManager {
-	friend class MainLoop;
+    class FDSelector {
 	friend class SysDataHolder;
     private:
-	char *pipePath;
-	char *serviceName;
-	FDSelector *selector;
-	Service *service;
-	int inputSockNum;
-	MainLoop *parent;
-
-	typedef struct {
-	    int sock;
-	    char *PortService;
-	} PortService;
-	typedef std::list<PortService *> portServiceList;
-	typedef struct {
-	    portServiceList nextPortService;
-	    StreamBuffer *buf;
-	} WritePort;
-
-	typedef std::map<std::string, WritePort *> string2WritePortMap;
-	string2WritePortMap writePortMap;
-
-	void addWritePort(char *portName, int fd, char *nextPortService);
-	void inclimentInputPort();
-	void declimentInputPort(char *portName);
+	fd_set rfds, wfds;
+	int maxfd;
+	typedef list<StreamReader *> streamReaderList;
+	typedef map<int, streamReaderList> streamReaderListMap;
+	streamReaderListMap rlmap;
+	typedef list<StreamWriter *> streamWriterList;
+	typedef map<int, streamWriterList> streamWriterListMap;
+	streamWriterListMap wlmap;
+	bool del(streamReaderList::iterator i);
+	bool del(streamWriterList::iterator i);
 
     public:
-	enum {
-	    PORT_ACTION_NORMAL = 0,
-	    PORT_ACTION_CLOSE = 1,
-	};
-	PipeManager(FDSelector *selector, char *thisPipePath, char *serviceName, Service *service, MainLoop *ml);
-	~PipeManager();
+	FDSelector();
+	~FDSelector();
 
-	void addReadFD(int fd, size_t bufsize = 4096);
-	bool write(char *portName, char *buf, size_t size);
-	StreamBuffer *getWriteBuffer(char *portName);
-	bool commit(char *portName);
-	void exit();
+	bool add(StreamReader *sr);
+	bool add(StreamWriter *sw);
+	bool del(StreamReader *sr);
+	bool del(StreamWriter *sw);
+
+	bool run(int usec);
     };
+
 }; /* namespace NetPipe */
 
-#endif /* NETPIPE_PIPEMANAGER_H */
-
+#endif /* NETPIPE_FDSELECTOR_H */

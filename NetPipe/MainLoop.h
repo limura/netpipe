@@ -29,30 +29,27 @@
 #define NETPIPE_MAINLOOP_H
 
 #include "Service.h"
-//#include "FDSelector.h"
+#include "FDSelector.h"
 #include "upnp.h"
-#include "FDWatcher.h"
+#include "Acceptor.h"
 
 #include <map>
 #include <list>
 #include <string>
-
-#define NETPIPE_HELLO_STRING "NetPipe 1.0"
 
 namespace NetPipe {
     class PortReader;
     class SysDataHolder;
     class PipeManager;
     class VersionChecker;
-    class MainLoop : public FDReciver {
+    class MainLoop : public AcceptEventHandler {
 	friend class Acceptor;
 	friend class PortReader;
 	friend class SysDataHolder;
 	friend class PipeManager;
 	friend class VersionChecker;
-	friend class FDWatcher;
     private:
-	//FDSelector *selector;
+	FDSelector *selector;
 	cookai_upnp *upnp;
 
 	int dummy_count;
@@ -62,8 +59,6 @@ namespace NetPipe {
 	    Service *service;
 	    PipeManager *pipeManager;
 	} ActivePipe;
-	typedef std::map<int, bool> intBoolMap;
-	intBoolMap usedSocketMap;
 	typedef std::map<std::string, ActivePipe *> string2ActivePipeMap;
 	string2ActivePipeMap activePipeMap;
 	typedef std::list<ServiceManager *> ServiceManagerList;
@@ -71,9 +66,7 @@ namespace NetPipe {
 
 	void connectToNextPort(PipeManager *pm, char *serviceName, char *pipePath);
 
-	void onAccept(int sock, void *userData);
-	void onRecive(int fd, char *buf, size_t size, void *userData);
-	void onClose(int fd, void *userData);
+	void onAccept(int sock);
 	void onAcceptValidConnection(int sock);
 	void openAcceptPort();
 	bool onPortRecive(char *buf, size_t size);

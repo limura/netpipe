@@ -22,38 +22,28 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: VersionChecker.h 58 2007-07-04 06:03:18Z  $
+ * $Id: Acceptor.h 35 2007-07-02 07:42:37Z  $
  */
 
+#ifndef NETPIPE_ACCEPTOR_H
+#define NETPIPE_ACCEPTOR_H
 
-#include "stdafx.h"
+#include "StreamReader.h"
 
-#include "NetPipe.NET.h"
-#include <MainLoop.h>
+namespace NetPipe {
+    class AcceptEventHandler {
+    public:
+	virtual void onAccept(int sock) = 0;
+    };
 
-namespace NetPipeDotNET {
-    /* MainLoop Wrapper */
-    MainLoop::MainLoop(){
-	UmMainLoop = new NetPipe::MainLoop();
-    }
-    MainLoop::~MainLoop(){
-	this->!MainLoop();
-    }
-    MainLoop::!MainLoop(){
-	if(UmMainLoop != NULL)
-	    delete UmMainLoop;
-    }
-    void MainLoop::addServiceManager(NetPipeDotNET::ServiceManager ^sm){
-	if(UmMainLoop != NULL){
-	    UmMainLoop->addServiceManager(sm->getUnmanagedObject());
-	}
-    }
-    void MainLoop::run(int usec){
-	if(UmMainLoop != NULL)
-	    UmMainLoop->run(usec);
-    }
-    void MainLoop::run(){
-	if(UmMainLoop != NULL)
-	    UmMainLoop->run(0);
-    }
-}; /* namespace NetPipeDotNET */
+    class Acceptor : public StreamReader {
+    private:
+	AcceptEventHandler *parent;
+    public:
+	Acceptor(AcceptEventHandler *parent, int fd);
+	virtual ~Acceptor();
+	bool onRecive();
+    };
+};
+
+#endif /* NETPIPE_ACCEPTOR_H */

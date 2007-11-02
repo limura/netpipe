@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id$
+ * $Id: PipeManager.h 50 2007-07-03 00:25:15Z  $
  */
 
 #include "stdafx.h"
