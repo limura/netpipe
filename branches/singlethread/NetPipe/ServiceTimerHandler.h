@@ -22,67 +22,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: PipeManager.h 50 2007-07-03 00:25:15Z  $
+ * $Id: StreamReader.h 51 2007-07-04 01:22:02Z  $
  */
 
-#ifndef NETPIPE_PIPEMANAGER_H
-#define NETPIPE_PIPEMANAGER_H
+#ifndef NETPIPE_SERVICETIMERHANDLER_H
+#define NETPIPE_SERVICETIMERHANDLER_H
 
-#include "FDSelector.h"
-#include "StreamBuffer.h"
-
-#include <map>
-#include <list>
-#include <string>
+#include <signal.h>
+#include "tools.h"
+#include "PipeManager.h"
+#include "Service.h"
 
 namespace NetPipe {
-    class MainLoop;
-    class Service;
-    class SysDataHolder;
-    class PipeManager {
-	friend class MainLoop;
-	friend class SysDataHolder;
+    class ServiceTimerHandler : public TimerHandler {
     private:
-	char *pipePath;
-	char *serviceName;
-	FDSelector *selector;
+	PipeManager *pm;
 	Service *service;
-	int inputSockNum;
-	MainLoop *parent;
-
-	typedef struct {
-	    int sock;
-	    char *PortService;
-	} PortService;
-	typedef std::list<PortService *> portServiceList;
-	typedef struct {
-	    portServiceList nextPortService;
-	    StreamBuffer *buf;
-	} WritePort;
-
-	typedef std::map<std::string, WritePort *> string2WritePortMap;
-	string2WritePortMap writePortMap;
-
-	void addWritePort(char *portName, int fd, char *nextPortService);
-	void inclimentInputPort();
-	void declimentInputPort(char *portName);
-
     public:
-	enum {
-	    PORT_ACTION_NORMAL = 0,
-	    PORT_ACTION_CLOSE = 1,
-	};
-	PipeManager(FDSelector *selector, char *thisPipePath, char *serviceName, Service *service, MainLoop *ml);
-	~PipeManager();
-
-	void addReadFD(int fd, size_t bufsize = 4096);
-	bool write(char *portName, char *buf, size_t size);
-	StreamBuffer *getWriteBuffer(char *portName);
-	bool commit(char *portName);
-	void addTimer(int usec);
-	void exit();
+	ServiceTimerHandler(PipeManager *pm, Service *service);
+	bool onTimeout();
     };
 }; /* namespace NetPipe */
 
-#endif /* NETPIPE_PIPEMANAGER_H */
+#endif /* NETPIPE_MAINLOOPTIMERHANDLER_H */
 

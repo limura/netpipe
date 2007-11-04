@@ -22,67 +22,35 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: PipeManager.h 50 2007-07-03 00:25:15Z  $
+ * $Id: StreamReader.h 51 2007-07-04 01:22:02Z  $
  */
 
-#ifndef NETPIPE_PIPEMANAGER_H
-#define NETPIPE_PIPEMANAGER_H
+#ifndef NETPIPE_TIMERHANDLER_H
+#define NETPIPE_TIMERHANDLER_H
 
-#include "FDSelector.h"
-#include "StreamBuffer.h"
-
-#include <map>
-#include <list>
-#include <string>
+#include <signal.h>
+#include "tools.h"
 
 namespace NetPipe {
-    class MainLoop;
-    class Service;
-    class SysDataHolder;
-    class PipeManager {
-	friend class MainLoop;
-	friend class SysDataHolder;
+    class TimerHandler {
     private:
-	char *pipePath;
-	char *serviceName;
-	FDSelector *selector;
-	Service *service;
-	int inputSockNum;
-	MainLoop *parent;
-
-	typedef struct {
-	    int sock;
-	    char *PortService;
-	} PortService;
-	typedef std::list<PortService *> portServiceList;
-	typedef struct {
-	    portServiceList nextPortService;
-	    StreamBuffer *buf;
-	} WritePort;
-
-	typedef std::map<std::string, WritePort *> string2WritePortMap;
-	string2WritePortMap writePortMap;
-
-	void addWritePort(char *portName, int fd, char *nextPortService);
-	void inclimentInputPort();
-	void declimentInputPort(char *portName);
+    protected:
+	char *myName;
+	struct timeval prev_called_time;
+	int tick_time;
 
     public:
-	enum {
-	    PORT_ACTION_NORMAL = 0,
-	    PORT_ACTION_CLOSE = 1,
-	};
-	PipeManager(FDSelector *selector, char *thisPipePath, char *serviceName, Service *service, MainLoop *ml);
-	~PipeManager();
+	TimerHandler();
+	int64_t diffTimeout(struct timeval *now);
+	void setTickTime(int tick_time);
+	int getTickTime();
+	void updateTimeout(struct timeval *now);
+	char *getName();
 
-	void addReadFD(int fd, size_t bufsize = 4096);
-	bool write(char *portName, char *buf, size_t size);
-	StreamBuffer *getWriteBuffer(char *portName);
-	bool commit(char *portName);
-	void addTimer(int usec);
-	void exit();
+	// if return true then recursive call.
+	virtual bool onTimeout() = 0;
     };
 }; /* namespace NetPipe */
 
-#endif /* NETPIPE_PIPEMANAGER_H */
+#endif /* NETPIPE_TIMERHANDLER_H */
 

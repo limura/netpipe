@@ -31,6 +31,7 @@
 #include "config.h"
 #include "StreamReader.h"
 #include "StreamWriter.h"
+#include "TimerHandler.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -89,6 +90,10 @@ namespace NetPipe {
 	bool del(streamReaderList::iterator i);
 	bool del(streamWriterList::iterator i);
 
+	typedef list<TimerHandler *> timerHandlerList;
+	timerHandlerList thlist;
+	int64_t timerCheck();
+
     public:
 	FDSelector();
 	~FDSelector();
@@ -97,6 +102,8 @@ namespace NetPipe {
 	bool add(StreamWriter *sw);
 	bool del(StreamReader *sr);
 	bool del(StreamWriter *sw);
+	bool add(TimerHandler *th);
+	bool del(TimerHandler *th);
 
 	bool run(int usec);
     };

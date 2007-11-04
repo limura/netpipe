@@ -34,7 +34,7 @@
 
 namespace NetPipe {
     FDSelector::FDSelector(){
-printf("FDSelector: CLEAR readport\n");
+//printf("FDSelector: CLEAR readport\n");
 	FD_ZERO(&rfds);
 	FD_ZERO(&wfds);
 	maxfd = -1;
@@ -58,7 +58,7 @@ printf("FDSelector: CLEAR readport\n");
 	}
 	wlmap.clear();
 	maxfd = -1;
-printf("FDSelector: CLEAR readport\n");
+//printf("FDSelector: CLEAR readport\n");
 	FD_ZERO(&rfds);
 	FD_ZERO(&wfds);
     }
@@ -67,7 +67,7 @@ printf("FDSelector: CLEAR readport\n");
 	if(sr == NULL)
 	    return false;
 	int fd = sr->getFD();
-printf("FDSelector: add readport: %d\n", fd);
+//printf("FDSelector: add readport: %d\n", fd);
 	FD_SET(fd, &rfds);
 	if(maxfd < fd)
 	    maxfd = fd;
@@ -79,7 +79,7 @@ printf("FDSelector: add readport: %d\n", fd);
 	if(sw == NULL)
 	    return false;
 	int fd = sw->getFD();
-printf("FDSelector: add writeport: %d\n", fd);
+//printf("FDSelector: add writeport: %d\n", fd);
 	FD_SET(fd, &wfds);
 	if(maxfd < fd)
 	    maxfd = fd;
@@ -93,7 +93,7 @@ printf("FDSelector: add writeport: %d\n", fd);
 	rlmap[fd].erase(i);
 	if(rlmap[fd].size() > 0)
 	    return true;
-	printf("FDSelector: DEL readport: %d\n", fd);
+//	printf("FDSelector: DEL readport: %d\n", fd);
 	FD_CLR(fd, &rfds);
 	rlmap.erase(fd);
 	return true;
@@ -105,7 +105,7 @@ printf("FDSelector: add writeport: %d\n", fd);
 	wlmap[fd].erase(i);
 	if(wlmap[fd].size() > 0)
 	    return true;
-	printf("FDSelector: DEL writeport: %d\n", fd);
+//	printf("FDSelector: DEL writeport: %d\n", fd);
 	FD_CLR(fd, &wfds);
 	wlmap.erase(fd);
 	return true;
@@ -138,6 +138,57 @@ printf("FDSelector: add writeport: %d\n", fd);
 	return false;
     }
 
+    bool FDSelector::add(TimerHandler *th){
+	if(th == NULL)
+	    return false;
+	int64_t tickTime = th->getTickTime();
+	if(tickTime <= 0)
+	    return false;
+	thlist.push_back(th);
+
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	th->updateTimeout(&tv);
+	return true;
+    }
+    bool FDSelector::del(TimerHandler *th){
+	for(timerHandlerList::iterator i = thlist.begin(); i != thlist.end(); i++){
+	    if(*(i) == th){
+		thlist.erase(i);
+		return true;
+	    }
+	}
+	return false;
+    }
+
+    // search timed out TimerHandler. and return next Timer wait time.
+    int64_t FDSelector::timerCheck(){
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	int64_t min, tmpi64;
+	timerHandlerList::iterator i;
+    TimerCheck_Start:
+	min = 999999999999UL;
+	for(i = thlist.begin(); i != thlist.end(); i++){
+	    tmpi64 = (*(i))->diffTimeout(&tv);
+	    if(tmpi64 <= 0){
+		TimerHandler *th = *(i);
+		if(th->onTimeout()){
+		    th->updateTimeout(&tv);
+		}else{
+printf("TIMER delete %p\r\n", th);
+		    thlist.erase(i);
+		    delete th;
+		    goto TimerCheck_Start;
+		}
+	    }else{
+		if(min > tmpi64)
+		    min = tmpi64;
+	    }
+	}
+	return min;
+    }
+
     bool FDSelector::run(int usec){
 	fd_set read_fds, write_fds;
 
@@ -148,16 +199,23 @@ printf("FDSelector: add writeport: %d\n", fd);
 
 	DPRINTF(10, ("select sleep %d usec.\n", usec));
 
+	int64_t next_timeout = this->timerCheck();
+	if(usec > 0 && usec < next_timeout)
+	    next_timeout = usec;
+
 	int selectRet;
 	errno = 0;
-	if(usec <= 0){
+//printf("FDSelector selecting(%d) (thlist: %d)\r\n", next_timeout, thlist.size());
+	if(usec <= 0 && next_timeout <= 0){
 	    selectRet = select(maxfd + 1, &read_fds, &write_fds, NULL, NULL);
 	}else{
 	    struct timeval tv;
-	    tv.tv_sec = usec / 1000000;
-	    tv.tv_usec = usec % 1000000;
+	    tv.tv_sec = (long)(next_timeout / 1000000);
+	    tv.tv_usec = (long)(next_timeout % 1000000);
 	    selectRet = select(maxfd + 1, &read_fds, &write_fds, NULL, &tv);
 	}
+//printf("FDSelector select out: %d\r\n", selectRet);
+	this->timerCheck();
 
 	if(selectRet < 0){
 #ifdef EINTR
@@ -175,6 +233,7 @@ printf("FDSelector: add writeport: %d\n", fd);
 	for(streamReaderListMap::iterator i = rlmap.begin(); selectRet > 0 && i != rlmap.end(); i++){
 	    if(i->second.size() > 0 && FD_ISSET(i->first, &read_fds)){
 		streamReaderList::iterator j = i->second.begin();
+printf("FDSelector recv: %d\r\n", i->first);
 		try{
 		    if((*j)->onRecive() == false){
 			del(j);
@@ -190,6 +249,7 @@ printf("FDSelector: add writeport: %d\n", fd);
 	for(streamWriterListMap::iterator i = wlmap.begin(); selectRet > 0 && i != wlmap.end(); i++){
 	    if(i->second.size() > 0 && FD_ISSET(i->first, &write_fds)){
 		streamWriterList::iterator j = i->second.begin();
+printf("FDSelector send: %d\r\n", i->first);
 		try{
 		    if((*j)->onWrite() == false){
 			del(j);

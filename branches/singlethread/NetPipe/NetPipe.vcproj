@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ServiceTimerHandler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\StreamBuffer.cpp"
 				>
 			</File>
@@ -213,6 +217,10 @@
 			</File>
 			<File
 				RelativePath=".\SysDataHolder.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\TimerHandler.cpp"
 				>
 			</File>
 			<File
@@ -302,6 +310,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ServiceTimerHandler.h"
+				>
+			</File>
+			<File
 				RelativePath=".\StreamBuffer.h"
 				>
 			</File>
@@ -315,6 +327,10 @@
 			</File>
 			<File
 				RelativePath=".\SysDataHolder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TimerHandler.h"
 				>
 			</File>
 			<File

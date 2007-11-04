@@ -748,3 +748,44 @@ unsigned long long bin2ull(unsigned char *buf, int depth){
     return ull;
 }
 
+#ifndef HAVE_GETTIMEOFDAY
+#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+#define DELTA_EPOCH_IN_MICROSECS 11644473600000000Ui64
+#else
+#define DELTA_EPOCH_IN_MICROSECS 11644473600000000ULL
+#endif
+int gettimeofday(struct timeval *tv, struct timezone *tz){
+    FILETIME ft;
+    LARGE_INTEGER li;
+    int64_t t;
+    if(tv == NULL)
+	return -1;
+
+    GetSystemTimeAsFileTime(&ft);
+    li.LowPart = ft.dwLowDateTime;
+    li.HighPart = ft.dwHighDateTime;
+    t = li.QuadPart;
+    t -= DELTA_EPOCH_IN_MICROSECS;
+    t /= 10;
+    tv->tv_sec = (long)(t / 1000000);
+    tv->tv_usec = (long)(t % 1000000);
+    return 0;
+}
+#endif
+
+#if 0
+// return mili sec
+int64_t getTime(){
+    int64_t now = 0;
+#ifndef HAVE_TIMEGETTIME
+    struct timeval tv;
+    if(gettimeofday(&tv, NULL) != 0)
+	return -1;
+    now = tv.tv_sec * 1000 +  tv.tv_usec / 1000;
+#else
+    now = (int64_t)timeGetTime();
+#endif
+    return now;
+}
+#endif
+

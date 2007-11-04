@@ -31,6 +31,7 @@
 #include "Service.h"
 #include "FDReader.h"
 #include "MainLoop.h"
+#include "ServiceTimerHandler.h"
 
 #include "config.h"
 
@@ -70,7 +71,7 @@ namespace NetPipe {
     }
 
     PipeManager::~PipeManager(){
-printf("PipeManager DELETING ALL NEXT CONNECTIONS FOR %s\n", serviceName);
+//printf("PipeManager DELETING ALL NEXT CONNECTIONS FOR %s\n", serviceName);
 	for(string2WritePortMap::iterator i = writePortMap.begin(); i != writePortMap.end(); i++){
 	    if(i->second == NULL)
 		continue;
@@ -80,11 +81,11 @@ printf("PipeManager DELETING ALL NEXT CONNECTIONS FOR %s\n", serviceName);
 			StreamBuffer *buf = new StreamBuffer(256);
 			int nextPortServiceLen = (int)strlen((*j)->PortService);
 			int pipePathLen = (int)strlen(pipePath);
-printf("PipeManager send CLOSE packet to fd:%d. size: %u, portService: %s\n",
-(*j)->sock,
-(uint32_t)(nextPortServiceLen + sizeof(char) + pipePathLen + sizeof(uint32_t) * 2),
-(*j)->PortService
-);
+//printf("PipeManager send CLOSE packet to fd:%d. size: %u, portService: %s\n",
+//(*j)->sock,
+//(uint32_t)(nextPortServiceLen + sizeof(char) + pipePathLen + sizeof(uint32_t) * 2),
+//(*j)->PortService
+//);
 
 			buf->WriteUint32((uint32_t)(nextPortServiceLen + sizeof(char) + pipePathLen + sizeof(uint32_t) * 2));
 			buf->WriteUint32(PORT_ACTION_CLOSE);
@@ -104,7 +105,7 @@ printf("PipeManager send CLOSE packet to fd:%d. size: %u, portService: %s\n",
 			free((*j)->PortService);
 	    }
 	    if(i->second->buf != NULL){
-printf(" DELETING StreamBuffer: %p\n", i->second->buf);
+//printf(" DELETING StreamBuffer: %p\n", i->second->buf);
 		delete i->second->buf;
 	    }
 	    i->second->buf = NULL;
@@ -113,7 +114,7 @@ printf(" DELETING StreamBuffer: %p\n", i->second->buf);
 	if(pipePath != NULL)
 	    free(pipePath);
 	pipePath = NULL;
-printf("DELETING Service: %p\n", service);
+//printf("DELETING Service: %p\n", service);
 	if(service != NULL)
 	    delete service;
 	service = NULL;
@@ -141,7 +142,7 @@ printf("DELETING Service: %p\n", service);
 	ps->PortService = strdup(nextPortService);
 	if(ps->PortService == NULL)
 	    throw "no more memory";
-	printf("  add nextPortService \"%s\" on myPort \"%s\" (fd: %d)\n", nextPortService, portName, sock);
+//	printf("  add nextPortService \"%s\" on myPort \"%s\" (fd: %d)\n", nextPortService, portName, sock);
 	wp->nextPortService.push_back(ps);
     }
 
@@ -162,14 +163,14 @@ printf("DELETING Service: %p\n", service);
     bool PipeManager::commit(char *portName){
 	WritePort *wp = writePortMap[portName];
 	if(wp == NULL || wp->buf == NULL){
-printf("  can not SEND on PortName \"%s\" not found WritePortMap.\n", portName);
+//printf("  can not SEND on PortName \"%s\" not found WritePortMap.\n", portName);
 //#ifdef HAVE_SYSLOG_H
 //syslog(LOG_LOCAL3, "can not SEND to \"%s\"  %s", portName, getGlobalIP4Addr());
 //#endif
 	    return false;
 	}
 	int pipePathLen = (int)strlen(pipePath);
-printf(" send to next portService. number of %d portService I have.\n", wp->nextPortService.size());
+//printf(" send to next portService. number of %d portService I have.\n", wp->nextPortService.size());
 	for(portServiceList::iterator i = wp->nextPortService.begin(); i != wp->nextPortService.end(); i++){
 	    PortWriter *pw = new PortWriter((*i)->sock, wp->buf);
 	    if(pw == NULL)
@@ -178,7 +179,7 @@ printf(" send to next portService. number of %d portService I have.\n", wp->next
 	    StreamBuffer *headerBuf = pw->getHeaderBuf();
 	    int nextPortServiceLen = (int)strlen((*i)->PortService);
 	    int headerLength = nextPortServiceLen + 1 + pipePathLen;
-printf("SEND TO NEXT PORT_SERVICE: %s (%d bytes data)\n", (*i)->PortService, wp->buf->getSize());
+//printf("SEND TO NEXT PORT_SERVICE: %s (%d bytes data)\n", (*i)->PortService, wp->buf->getSize());
 	    headerBuf->WriteUint32((uint32_t)(wp->buf->getSize() + headerLength + sizeof(uint32_t) * 2));
 	    headerBuf->WriteUint32(PORT_ACTION_NORMAL);
 	    headerBuf->WriteUint32(headerLength);
@@ -219,5 +220,13 @@ printf("SEND TO NEXT PORT_SERVICE: %s (%d bytes data)\n", (*i)->PortService, wp-
     void PipeManager::exit(){
 	if(parent != NULL)
 	    parent->deleteActivePipe(this);
+    }
+
+    void PipeManager::addTimer(int usec){
+	if(usec <= 0 || selector == NULL)
+	    return;
+	ServiceTimerHandler *sth = new ServiceTimerHandler(this, service);
+	sth->setTickTime(usec);
+	selector->add(sth);
     }
 }; /* namespace NetPipe */

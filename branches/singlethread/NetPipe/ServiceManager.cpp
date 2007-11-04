@@ -32,6 +32,7 @@
 #include "Acceptor.h"
 #include "PortWriter.h"
 #include "PipeManager.h"
+#include "TimerHandler.h"
 
 #define NETPIPE_HEADER_BUFFER_LENGTH (1024)
 
@@ -104,7 +105,8 @@ namespace NetPipe {
 	}
 	fdi->bufSize = bufsize;
     }
-    void ServiceManager::addTimer(int usec, char *description){
+    void ServiceManager::addTimer(int usec, void *userData, char *description){
+
     }
     void ServiceManager::addServiceCreator(ServiceCreator *serviceCreator, void *userdata){
 	creator = serviceCreator;
@@ -165,4 +167,9 @@ namespace NetPipe {
 	    ServiceDB::getInstance()->Regist(ServiceString);
     }
 
+    void ServiceManager::registFDSelector(NetPipe::FDSelector *selector){
+	if(selector == NULL)
+	    return;
+	selector;
+    }
 }; /* namespace NetPipe */

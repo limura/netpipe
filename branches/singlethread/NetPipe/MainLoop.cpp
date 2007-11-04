@@ -115,7 +115,7 @@ namespace NetPipe {
 //	    fprintf(log_fp, "\n\n---COUNT: %d---\n", dummy_count++);
 //	    fprintf(log_fp, "%s", p);
 	}
-printf("onPortRecive() got %d bytes data\n", size);
+//printf("onPortRecive() got %d bytes data\n", size);
  
 	uint32_t action;
 	if(size < sizeof(action))
@@ -124,8 +124,8 @@ printf("onPortRecive() got %d bytes data\n", size);
 	size -= sizeof(action);
 	buf += sizeof(action);
 
-if(action != 0)
-    printf("onPortRecive: action: %d\n", action);
+//if(action != 0)
+//    printf("onPortRecive: action: %d\n", action);
 
 	uint32_t strLen;
 	if(size < sizeof(strLen))
@@ -157,7 +157,7 @@ if(action != 0)
 	*p = '\0';
 	p++;
 	char *serviceName = p;
-printf("onPortRecive: serviceName: %s\n", serviceName);
+//printf("onPortRecive: serviceName: %s\n", serviceName);
 
 	char *inputArg;
 	inputArg = strchr(serviceName, ' ');
@@ -191,6 +191,7 @@ printf("onPortRecive: serviceName: %s\n", serviceName);
 			inputArg[-1] = ' ';
 //		    activePipeMap[pipePath] = ap;
 		    activePipeMap[serviceName] = ap;
+		    ap->service->onEvent(ap->pipeManager, NULL, NULL, Service::CREATED, NULL, 0);
 		    connectToNextPort(ap->pipeManager, serviceName, pipePath);
 		    break;
 		}
@@ -229,18 +230,18 @@ printf("onPortRecive: serviceName: %s\n", serviceName);
 		char outPortBuf[1024];
 		p = strchr(p, ';');
 		if(p == NULL){
-printf("PipePath check error (3). in MainLoop::ConnecToNextPort()\n");
+//printf("PipePath check error (3). in MainLoop::ConnecToNextPort()\n");
 		    continue;
 		}
 		p++;
 		outPort = p;
 		p = strchr(p, ';');
 		if(p == NULL){
-printf("PipePath check error (1). in MainLoop::ConnecToNextPort()\n");
+//printf("PipePath check error (1). in MainLoop::ConnecToNextPort()\n");
 		    continue;
 		}
 		if((int)(p - outPort) > (int)(sizeof(outPortBuf) - 1)){
-printf("PipePath check error (2). in MainLoop::ConnecToNextPort()\n");
+//printf("PipePath check error (2). in MainLoop::ConnecToNextPort()\n");
 		    continue;
 		}
 		memcpy(outPortBuf, outPort, p - outPort);
@@ -250,7 +251,7 @@ printf("PipePath check error (2). in MainLoop::ConnecToNextPort()\n");
 		nextPortService = p;
 		p = strchr(p, ';');
 		if(p == NULL){
-printf("PipePath check error (3). in MainLoop::ConnecToNextPort()\n");
+//printf("PipePath check error (3). in MainLoop::ConnecToNextPort()\n");
 		    continue;
 		}
 		p++;
@@ -258,7 +259,7 @@ printf("PipePath check error (3). in MainLoop::ConnecToNextPort()\n");
 		char *nextIPaddr = db->QueryIPHostName(nextService);
 		char *nextPortName = db->QueryTCPPortName(nextService);
 		if(nextIPaddr == NULL || nextPortName == NULL){
-printf("can not query nextService \"%s\". ip/port: %s:%s\n", nextService, nextIPaddr, nextPortName);
+//printf("can not query nextService \"%s\". ip/port: %s:%s\n", nextService, nextIPaddr, nextPortName);
 		    continue;
 		}
 
@@ -281,20 +282,20 @@ printf("can not query nextService \"%s\". ip/port: %s:%s\n", nextService, nextIP
 		StreamBuffer *buf = new StreamBuffer(32);
 		if(buf == NULL){
 		    closeSocket(fd);
-printf("no more memory. in MainLoop::ConnecToNextPort() by create StreamBuffer\n");
+//printf("no more memory. in MainLoop::ConnecToNextPort() by create StreamBuffer\n");
 		    continue;
 		}
 		buf->WriteBinary(NETPIPE_HELLO_STRING, strlen(NETPIPE_HELLO_STRING));
 		PortWriter *pw = new PortWriter(fd, buf);
 		if(pw == NULL){
-printf("no more memory. in MainLoop::ConnecToNextPort() by create PortWriter\n");
+//printf("no more memory. in MainLoop::ConnecToNextPort() by create PortWriter\n");
 		    closeSocket(fd);
 		    delete buf;
 		    continue;
 		}
 		selector->add(pw);
-printf("nextPortService %s (%s:%s) connected.\npm->addWritePort outPort: %s, fd: %d\n",
-       nextPortService, nextIPaddr, nextPortName, outPort, fd);
+//printf("nextPortService %s (%s:%s) connected.\npm->addWritePort outPort: %s, fd: %d\n",
+//       nextPortService, nextIPaddr, nextPortName, outPort, fd);
 		pm->addWritePort(outPort, fd, nextPortService);
 	    }
 	}
@@ -332,7 +333,7 @@ printf("nextPortService %s (%s:%s) connected.\npm->addWritePort outPort: %s, fd:
 	    upnp_close(upnp);
 	    throw "can not get my IPaddr and portNumber";
 	}
-printf("lisning on %s %s\n", IPaddr, portStr);
+//printf("lisning on %s %s\n", IPaddr, portStr);
 
 	Acceptor *acceptor = new Acceptor(this, fd);
 	if(acceptor == NULL){

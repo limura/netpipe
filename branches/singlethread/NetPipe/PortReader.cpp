@@ -75,18 +75,18 @@ namespace NetPipe {
 		return false;
 	    }
 	    readingBytes = ntohl(ui32);
-printf("PortReader readingBytes: %d = ntohl\n", readingBytes);
-	    printf("PortReader ReadByte: %d\n", readingBytes);
+//printf("PortReader readingBytes: %d = ntohl\n", readingBytes);
+//	    printf("PortReader ReadByte: %d\n", readingBytes);
 	    return true;
 	}
 	if((bufSize - (p - buf)) < readingBytes){
 	    if(readingBytes > PORTREADER_MAX_READ_SIZE){
-printf("portReader size too big. disconnect.\n");
+//printf("portReader size too big. disconnect.\n");
 		return false;
 	    }
 	    size_t newSize = bufSize - (p - buf);
 	    newSize = (readingBytes / 4096 + 1) * 4096;
-printf("PortReader reallocing: %d to %d\n", bufSize, newSize);
+//printf("PortReader reallocing: %d to %d\n", bufSize, newSize);
 	    char *tmp_buf = (char *)realloc(buf, newSize);
 	    if(tmp_buf == NULL)
 		throw "no more memory.";
@@ -100,12 +100,12 @@ printf("PortReader reallocing: %d to %d\n", bufSize, newSize);
 	}
 	p += len;
 	readingBytes -= len;
-printf("PortReader readingBytes: %d (-= %d)\n", readingBytes, len);
+//printf("PortReader readingBytes: %d (-= %d)\n", readingBytes, len);
 	if(readingBytes <= 0){
 	    if(parent->onPortRecive(buf, p - buf) == false)
 		return false;
 	    readingBytes = -1;
-printf("PortReader readingBytes: %d (= -1)\n", readingBytes);
+//printf("PortReader readingBytes: %d (= -1)\n", readingBytes);
 	    p = buf;
 	}
 	return true;
