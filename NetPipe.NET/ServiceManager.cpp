@@ -98,7 +98,7 @@ namespace NetPipeDotNET {
 	ServiceWrapper(gcroot<NetPipeDotNET::Service ^>service){
 	    gcService = service;
 	}
-	void onEvent(NetPipe::PipeManager *pipeManager, char *portName,
+	bool onEvent(NetPipe::PipeManager *pipeManager, char *portName,
 	    char *arg, NetPipe::Service::EVENT_TYPE type, char *buf, size_t bufSize){
 		array<System::Byte>^ byteArray = gcnew array<System::Byte>(bufSize);
 		pin_ptr<System::Byte> pBuf = &byteArray[0];
@@ -107,6 +107,7 @@ namespace NetPipeDotNET {
 		    gcnew System::String(portName), gcnew System::String(arg),
 		    (NetPipeDotNET::Service::EVENT_TYPE)type,
 		    byteArray);
+		return false;
 	}
     };
 

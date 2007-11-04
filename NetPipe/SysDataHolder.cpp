@@ -47,7 +47,7 @@ namespace NetPipe {
 	    sdh = parent;
 	};
 
-	void onEvent(PipeManager *pm, char *portName, char *arg, Service::EVENT_TYPE type, char *buf, size_t bufSize){
+	bool onEvent(PipeManager *pm, char *portName, char *arg, Service::EVENT_TYPE type, char *buf, size_t bufSize){
 	    switch(type){
 		case Service::RECV:
 		    if(portName != NULL && strcmp(portName, "stdout")){
@@ -58,6 +58,7 @@ namespace NetPipe {
 		default:
 		    break;
 	    }
+	    return true;
 	};
     };
 

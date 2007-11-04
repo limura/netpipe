@@ -22,50 +22,22 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: ServiceDB.h 96 2007-07-08 11:46:50Z  $
+ * $Id: StreamReader.h 51 2007-07-04 01:22:02Z  $
  */
 
-#ifndef NETPIPE_SERVICEDB_H
-#define NETPIPE_SERVICEDB_H
-
-#include "config.h"
-
-#include <string>
-#include <map>
-
-#define SERVICE_MAP_ENV "NETPIPE_SERVICE_MAP_URL"
-#define SERVICE_UPDATE_ENV "NETPIPE_SERVICE_UPDATE_URL"
-#if 0
-#define STATIC_SERVICE_MAP_URL "http://nazca.naist.wide.ad.jp/s/s.cgi"
-#define STATIC_SERVICE_UPDATE_URL "http://nazca.naist.wide.ad.jp/s/s.cgi"
-#else
-#define STATIC_SERVICE_MAP_URL "http://uirou.no-ip.org/s/s.cgi"
-#define STATIC_SERVICE_UPDATE_URL "http://uirou.no-ip.org/s/s.cgi"
-#endif
+#include "ServiceTimerHandler.h"
+#include "PipeManager.h"
+#include "Service.h"
 
 namespace NetPipe {
-    class ServiceDB {
-    private:
-	typedef struct {
-	    char *IPHost;
-	    char *TCPPort;
-	} Service;
-	typedef std::map<std::string, Service *> ServiceNameMap;
-	ServiceNameMap serviceData;
+    ServiceTimerHandler::ServiceTimerHandler(PipeManager *pm, Service *service){
+	this->pm = pm;
+	this->service = service;
+    }
+    bool ServiceTimerHandler::onTimeout(){
+	if(service != NULL)
+	    return service->onEvent(pm, NULL, NULL, Service::TIMER, NULL, 0);
+	return false;
+    }
+}; /* namespace NetPipe */
 
-	void refreshServiceData();
-	ServiceDB::Service *updateServiceData(char *serviceName);
-	ServiceDB();
-	void clearCache();
-    public:
-	~ServiceDB();
-	static ServiceDB *getInstance();
-
-	char *QueryIPHostName(char *serviceName);
-	char *QueryTCPPortName(char *serviceName);
-
-	bool Regist(char *serviceString); // XXXX ServiceDB::Service ÇÃì‡óeÇ ServiceDBäOÇÃâΩÇ© Ç…èëÇ©ÇπÇƒÇ¢ÇÈ
-    };
-};
-
-#endif /* NETPIPE_SERVICEDB_H */

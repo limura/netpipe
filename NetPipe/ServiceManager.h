@@ -90,6 +90,7 @@ namespace NetPipe {
 
 	Service *createNewService();
 	void registerServiceDB(char *IPaddr, char *TCPPort);
+	void registFDSelector(FDSelector *selector);
 
     public:
 	ServiceManager(char *serviceName);
@@ -99,7 +100,7 @@ namespace NetPipe {
 	void addReadPort(char *portName, char *description = "UNDEFINED");
 	void addWritePort(char *portName, char *description = "UNDEFINED");
 	void addReadFD(int fd, char *description = "UNDEFINED", size_t bufsize = 4096);
-	void addTimer(int usec, char *description = "UNDEFINED");
+	void addTimer(int usec, void *userData, char *description = "UNDEFINED");
 	void addServiceCreator(ServiceCreator *serviceCreator, void *userdata = NULL);
 	void registReadFDInput(PipeManager *pm);
     };

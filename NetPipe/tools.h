@@ -36,6 +36,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <time.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -110,6 +111,11 @@ int rnd1(int max);
 
 unsigned char *vf_create_send_buf(size_t *ret_siz, char *fmt, ...);
 unsigned char *vf_get_from_send_buf(unsigned char *buf, size_t bufsiz, char *fmt, ...);
+
+//int64_t getTime();
+#ifndef HAVE_GETTIMEOFDAY
+int gettimeofday(struct timeval *tv, struct timezone *tz);
+#endif
 
 #ifdef __cplusplus
 }

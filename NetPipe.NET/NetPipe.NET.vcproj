@@ -62,6 +62,7 @@
 				AdditionalDependencies="msvcrt.lib msvcrtd.lib NetPipe.lib ws2_32.lib winmm.lib $(NOINHERIT)"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(TargetDir)&quot;"
+				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				TargetMachine="1"
@@ -117,6 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\NetPipe&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
@@ -134,8 +136,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(NoInherit)"
+				AdditionalDependencies="msvcrt.lib msvcrtd.lib NetPipe.lib ws2_32.lib winmm.lib $(NOINHERIT)"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;$(TargetDir)&quot;"
+				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>

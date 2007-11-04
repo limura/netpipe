@@ -22,50 +22,55 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: ServiceDB.h 96 2007-07-08 11:46:50Z  $
+ * $Id: StreamReader.h 51 2007-07-04 01:22:02Z  $
  */
 
-#ifndef NETPIPE_SERVICEDB_H
-#define NETPIPE_SERVICEDB_H
+#include "TimerHandler.h"
 
-#include "config.h"
+namespace NetPipe{
 
-#include <string>
-#include <map>
+TimerHandler::TimerHandler(){
+    prev_called_time.tv_sec = 0;
+    prev_called_time.tv_usec = 0;
+    tick_time = 0;
+    myName = NULL;
+}
 
-#define SERVICE_MAP_ENV "NETPIPE_SERVICE_MAP_URL"
-#define SERVICE_UPDATE_ENV "NETPIPE_SERVICE_UPDATE_URL"
-#if 0
-#define STATIC_SERVICE_MAP_URL "http://nazca.naist.wide.ad.jp/s/s.cgi"
-#define STATIC_SERVICE_UPDATE_URL "http://nazca.naist.wide.ad.jp/s/s.cgi"
-#else
-#define STATIC_SERVICE_MAP_URL "http://uirou.no-ip.org/s/s.cgi"
-#define STATIC_SERVICE_UPDATE_URL "http://uirou.no-ip.org/s/s.cgi"
-#endif
+int64_t TimerHandler::diffTimeout(struct timeval *now){
+    int64_t sec, usec;
+    if(now == NULL)
+	return -1;
+    sec = prev_called_time.tv_sec - now->tv_sec;
+    usec = (prev_called_time.tv_usec + tick_time) - now->tv_usec;
+//    printf("  TimerHandler diffing %ld.%ld - %ld.%ld\r\n", prev_called_time.tv_sec, now->tv_sec, prev_called_time.tv_usec + tick_time, now->tv_usec);
+    while(usec < 0){
+	sec--;
+	usec += 1000000;
+    }
+    while(usec >= 1000000){
+	sec++;
+	usec -= 1000000;
+    }
+    return (int64_t)sec * 1000000 + usec;
+}
 
-namespace NetPipe {
-    class ServiceDB {
-    private:
-	typedef struct {
-	    char *IPHost;
-	    char *TCPPort;
-	} Service;
-	typedef std::map<std::string, Service *> ServiceNameMap;
-	ServiceNameMap serviceData;
+void TimerHandler::setTickTime(int tick_time){
+    this->tick_time = tick_time;
+}
 
-	void refreshServiceData();
-	ServiceDB::Service *updateServiceData(char *serviceName);
-	ServiceDB();
-	void clearCache();
-    public:
-	~ServiceDB();
-	static ServiceDB *getInstance();
+int TimerHandler::getTickTime(){
+    return tick_time;
+}
 
-	char *QueryIPHostName(char *serviceName);
-	char *QueryTCPPortName(char *serviceName);
+void TimerHandler::updateTimeout(struct timeval *now){
+    if(now == NULL)
+	return;
+    prev_called_time.tv_sec = now->tv_sec;
+    prev_called_time.tv_usec = now->tv_usec;
+}
 
-	bool Regist(char *serviceString); // XXXX ServiceDB::Service ÇÃì‡óeÇ ServiceDBäOÇÃâΩÇ© Ç…èëÇ©ÇπÇƒÇ¢ÇÈ
-    };
-};
+char *TimerHandler::getName(){
+    return myName;
+}
 
-#endif /* NETPIPE_SERVICEDB_H */
+}; /* namespace NetPipe */

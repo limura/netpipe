@@ -57,7 +57,7 @@ void test_ServiceDB(){
 class EchoService : public NetPipe::Service {
 private:
 public:
-    void onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
+    bool onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
 	NetPipe::Service::EVENT_TYPE type, char *buf, size_t size){
 	switch(type){
 	    case NetPipe::Service::RECV:
@@ -99,7 +99,7 @@ public:
     virtual ~ShService(){
 	printf("delete ShService\n");
     }
-    void onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
+    bool onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
 	NetPipe::Service::EVENT_TYPE type, char *buf, size_t size){
 	int fd = -1;
       printf("onEvent(%p, \"%s\", \"%s\", %d, %p, %d)\n",
@@ -115,7 +115,7 @@ public:
 		    FILE *fp = popen(arg, "r+");
 #endif
 		    if(fp == NULL)
-			return;
+			return false;
 
 		    shFDMap[arg] = fileno(fp);
 		    pm->addReadFD(fileno(fp));
@@ -205,6 +205,7 @@ public:
 	    default:
 		break;
 	}
+	return false;
     }
 };
 
@@ -219,7 +220,7 @@ public:
 class DataCreator : public NetPipe::Service {
 private:
 public:
-    void onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
+    bool onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
 	NetPipe::Service::EVENT_TYPE type, char *buf, size_t size){
 	char writeBuf[1024];
 	int i;
@@ -253,12 +254,13 @@ public:
 	    default:
 		break;
 	};
+	return false;
     }
 };
 class Pipe : public NetPipe::Service {
 private:
 public:
-    void onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
+    bool onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
 	NetPipe::Service::EVENT_TYPE type, char *buf, size_t size){
 	switch(type){
 	    case NetPipe::Service::RECV:
@@ -283,12 +285,13 @@ public:
 	    default:
 		break;
 	};
+	return false;
     }
 };
 class DevNull : public NetPipe::Service {
 private:
 public:
-    void onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
+    bool onEvent(NetPipe::PipeManager *pm, char *portName, char *arg,
 	NetPipe::Service::EVENT_TYPE type, char *buf, size_t size){
 	switch(type){
 	    case NetPipe::Service::RECV:
@@ -309,6 +312,7 @@ public:
 	    default:
 		break;
 	};
+	return false;
     }
 };
 class DataCreatorCreator : public NetPipe::ServiceCreator {

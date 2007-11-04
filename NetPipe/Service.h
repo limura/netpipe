@@ -45,8 +45,9 @@ namespace NetPipe {
 	    FD_INPUT,
 	    FD_DOWN, // FD_CLOSE ‚Í‚Ç‚Á‚©‚ÅŽg‚í‚ê‚Ä‚é
 	    TIMER,
+	    CREATED,
 	} EVENT_TYPE;
-	virtual void onEvent(PipeManager *pipeManager, char *portName,
+	virtual bool onEvent(PipeManager *pipeManager, char *portName,
 	    char *arg, EVENT_TYPE type, char *buf, size_t bufSize) = 0;
     };
 }; /* namespace NetPipe */
