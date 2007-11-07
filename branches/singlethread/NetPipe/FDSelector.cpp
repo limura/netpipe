@@ -179,8 +179,8 @@ namespace NetPipe {
 printf("TIMER delete %p\r\n", th);
 		    thlist.erase(i);
 		    delete th;
-		    goto TimerCheck_Start;
 		}
+		goto TimerCheck_Start;
 	    }else{
 		if(min > tmpi64)
 		    min = tmpi64;
