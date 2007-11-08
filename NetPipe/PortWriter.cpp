@@ -29,12 +29,21 @@
 #include "tools.h"
 #include "PortWriter.h"
 #include "StreamBuffer.h"
+#include "Service.h"
+#include "PipeManager.h"
 #include "net.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 namespace NetPipe {
-    PortWriter::PortWriter(int sock, StreamBuffer *origBuf){
+    PortWriter::PortWriter(int sock, StreamBuffer *origBuf, PipeManager *pm, Service *service, char *portName){
+	pipeManager = pm;
+	targetService = service;
+	if(this->portName != NULL){
+	    this->portName = strdup(portName);
+	}else{
+	    this->portName = NULL;
+	}
 	buf = NULL;
 	static char name[] = "PortWriter";
 	myName = name;
@@ -55,6 +64,8 @@ namespace NetPipe {
 	    delete buf;
 	if(headerBuf != NULL)
 	    delete headerBuf;
+	if(portName != NULL)
+	    free(portName);
 	if(linkDown && fd >= 0){
 	    closeSocket(fd);
 	}
@@ -69,26 +80,41 @@ namespace NetPipe {
     bool PortWriter::onWrite(){
 DPRINTF(100, ("PortWriter::onWrite() fd: %d\n", fd));
 DPRINTF(100, ("  header: %p (%d bytes), buffer: %p (%d bytes)\n",
-       headerBuf, headerBuf != NULL ? headerBuf->getSize() : 0,
-       buf, buf != NULL ? buf->getSize() : 0));
-	if(headerBuf != NULL){
-	    if(headerBuf->socketWrite(fd) == false){
+        headerBuf, headerBuf != NULL ? headerBuf->getSize() : 0,
+        buf, buf != NULL ? buf->getSize() : 0));
+        try {
+	    if(headerBuf != NULL){
+		if(headerBuf->socketWrite(fd) == false){
+		    delete headerBuf;
+		    headerBuf = NULL;
+		    if(buf == NULL)
+			return false;
+		}
+		return true;
+	    }
+	    if(buf != NULL && buf->socketWrite(fd) == false){
+		delete buf;
+		buf = NULL;
+	    }
+	}catch(StreamBufferSendError e){
+	    if(targetService != NULL){
+		targetService->onEvent(pipeManager, portName, NULL, Service::SEND_DOWN, NULL, 0);
+	    }
+	    if(headerBuf != NULL){
 		delete headerBuf;
 		headerBuf = NULL;
-		if(buf == NULL)
-		    return false;
 	    }
-	    return true;
-	}
-	if(buf != NULL && buf->socketWrite(fd) == false){
-	    delete buf;
-	    buf = NULL;
+	    if(buf != NULL){
+		delete buf;
+		buf = NULL;
+	    }
+	    return false;
 	}
 	if(headerBuf != NULL || buf != NULL)
 	    return true;
 	return false; // ‘—‚èI‚í‚Á‚½‚çE‚µ‚Ä‚à‚ç‚¤
     }
-    void PortWriter::setLinkDwon(){
+    void PortWriter::setLinkDown(){
 	linkDown = true;
     }
 };

@@ -104,6 +104,7 @@ namespace NetPipe {
 	bool del(StreamWriter *sw);
 	bool add(TimerHandler *th);
 	bool del(TimerHandler *th);
+	bool delFD(int fd);
 
 	bool run(int usec);
     };

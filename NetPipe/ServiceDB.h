@@ -54,7 +54,6 @@ namespace NetPipe {
 	ServiceNameMap serviceData;
 
 	void refreshServiceData();
-	ServiceDB::Service *updateServiceData(char *serviceName);
 	ServiceDB();
 	void clearCache();
     public:
@@ -63,6 +62,7 @@ namespace NetPipe {
 
 	char *QueryIPHostName(char *serviceName);
 	char *QueryTCPPortName(char *serviceName);
+	ServiceDB::Service *updateServiceData(char *serviceName);
 
 	bool Regist(char *serviceString); // XXXX ServiceDB::Service ‚Ì“à—e‚ğ ServiceDBŠO‚Ì‰½‚© ‚É‘‚©‚¹‚Ä‚¢‚é
     };

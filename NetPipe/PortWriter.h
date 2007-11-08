@@ -31,6 +31,8 @@
 #include "config.h"
 #include "StreamWriter.h"
 #include "StreamBuffer.h"
+#include "Service.h"
+#include "PipeManager.h"
 
 #include <stdlib.h>
 
@@ -39,11 +41,15 @@ namespace NetPipe {
     private:
 	bool linkDown;
 	StreamBuffer *buf, *headerBuf;
+	Service *targetService;
+	PipeManager *pipeManager;
+	char *portName;
     public:
-	PortWriter(int fd, StreamBuffer *buf);
+	PortWriter(int fd, StreamBuffer *buf, PipeManager *pipeManager = NULL,
+	    Service *targetService = NULL, char *portName = NULL);
 	virtual ~PortWriter();
 	StreamBuffer *getHeaderBuf();
-	void setLinkDwon();
+	void setLinkDown();
 	bool onWrite();
     };
 }; /* namespace NetPipe */
