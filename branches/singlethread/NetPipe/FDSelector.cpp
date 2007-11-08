@@ -111,6 +111,28 @@ namespace NetPipe {
 	return true;
     }
 
+    bool FDSelector::delFD(int fd){
+	if(fd < 0)
+	    return false;
+	streamReaderList::iterator ri;
+	while((ri = rlmap[fd].begin()) != rlmap[fd].end()){
+	    delete (*ri);
+	    rlmap[fd].erase(ri);
+	}
+	FD_CLR(fd, &rfds);
+	rlmap.erase(fd);
+
+	streamWriterList::iterator wi;
+	while((wi = wlmap[fd].begin()) != wlmap[fd].end()){
+	    delete (*wi);
+	    wlmap[fd].erase(wi);
+	}
+	FD_CLR(fd, &wfds);
+	wlmap.erase(fd);
+
+	return true;
+    }
+
     bool FDSelector::del(StreamReader *sr){
 	if(sr == NULL)
 	    return false;
@@ -236,11 +258,11 @@ printf("TIMER delete %p\r\n", th);
 printf("FDSelector recv: %d\r\n", i->first);
 		try{
 		    if((*j)->onRecive() == false){
-			del(j);
+			del(*j);
 			return true;
 		    }
 		}catch (char *){
-		    del(j);
+		    del(*j);
 		    return true;
 		}
 		selectRet--;
@@ -249,14 +271,17 @@ printf("FDSelector recv: %d\r\n", i->first);
 	for(streamWriterListMap::iterator i = wlmap.begin(); selectRet > 0 && i != wlmap.end(); i++){
 	    if(i->second.size() > 0 && FD_ISSET(i->first, &write_fds)){
 		streamWriterList::iterator j = i->second.begin();
+		streamWriterList::iterator k;
 printf("FDSelector send: %d\r\n", i->first);
 		try{
 		    if((*j)->onWrite() == false){
-			del(j);
+			delFD(i->first);
+			//del(*j);
 			return true;
 		    }
 		}catch (char *){
-		    del(j);
+		    delFD(i->first);
+		    //del(*j);
 		    return true;
 		}
 		selectRet--;

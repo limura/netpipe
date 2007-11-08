@@ -42,6 +42,7 @@ namespace NetPipe {
 	typedef enum {
 	    RECV,
 	    RECV_DOWN, // 受信ポートが落ちた
+	    SEND_DOWN, // 送信ポートが落ちた
 	    FD_INPUT,
 	    FD_DOWN, // FD_CLOSE はどっかで使われてる
 	    TIMER,

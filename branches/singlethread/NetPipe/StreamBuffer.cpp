@@ -332,8 +332,11 @@ namespace NetPipe {
 	if(writeP - readP <= 0)
 	    return false;
 	int write_length = send(fd, buf, (int)(writeP - readP), 0);
-	if(write_length <= 0)
-	    return false;
+	if(write_length <= 0){
+	    StreamBufferSendError e = 1;
+	    throw e;
+	    //return false;
+	}
 	if(write_length < (writeP - readP)){
 	    readP += write_length;
 	    return true;

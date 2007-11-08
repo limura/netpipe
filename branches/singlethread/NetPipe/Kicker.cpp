@@ -143,8 +143,11 @@ CONTINUE:
 	    sm->WriteBinary(NetPipePathString, NetPipePathStringLen);
 	    sm->WriteUint8('\n');
 
-	    while(sm->socketWrite(sock))
-		;
+	    try {
+		while(sm->socketWrite(sock))
+		    ;
+	    }catch (StreamBufferSendError e) {
+	    }
 	    closeSocket(sock);
 	}
 	free(buf);

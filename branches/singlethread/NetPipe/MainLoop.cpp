@@ -55,7 +55,8 @@ namespace NetPipe {
 	    throw "FDSelector initialize failed.";
 	serviceManagerList.clear();
 	activePipeMap.clear();
-	upnp = NULL;
+	upnp = upnp_listen_stream_with_local(8471);
+	acceptor = NULL;
 
 #if 0
 	dummy_count = 0;
@@ -83,7 +84,7 @@ namespace NetPipe {
     }
 
     void MainLoop::run(int usec){
-	if(upnp == NULL)
+	if(acceptor == NULL)
 	    openAcceptPort();
 	if(usec <= 0){
 	    while(selector->run(0)){
@@ -183,7 +184,7 @@ namespace NetPipe {
 		    ap->service = (*i)->createNewService();
 		    if(ap->service == NULL)
 			throw "can not create new service instance.";
-		    ap->pipeManager = new PipeManager(selector, pipePath, serviceName, ap->service, this);
+		    ap->pipeManager = new PipeManager(selector, pipePath, serviceName, ap->service, this, upnp);
 		    if(ap->pipeManager == NULL)
 			throw "no more memory";
 		    (*i)->registReadFDInput(ap->pipeManager);
@@ -309,7 +310,8 @@ namespace NetPipe {
 	char *IPaddr = NULL;
 
 	portStr = NULL;
-	upnp = upnp_listen_stream_with_local(port);
+	if(upnp == NULL)
+	    upnp = upnp_listen_stream_with_local(port);
 	if(upnp == NULL)
 	    throw "can not listen accept port.";
 	if(upnp->sock < 0){

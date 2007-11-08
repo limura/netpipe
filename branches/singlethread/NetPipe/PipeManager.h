@@ -30,6 +30,7 @@
 
 #include "FDSelector.h"
 #include "StreamBuffer.h"
+#include "upnp.h"
 
 #include <map>
 #include <list>
@@ -49,6 +50,7 @@ namespace NetPipe {
 	Service *service;
 	int inputSockNum;
 	MainLoop *parent;
+	cookai_upnp *upnp;
 
 	typedef struct {
 	    int sock;
@@ -66,13 +68,15 @@ namespace NetPipe {
 	void addWritePort(char *portName, int fd, char *nextPortService);
 	void inclimentInputPort();
 	void declimentInputPort(char *portName);
+	void PortClose(int fd, char *portService, char *pipePath);
 
     public:
 	enum {
 	    PORT_ACTION_NORMAL = 0,
 	    PORT_ACTION_CLOSE = 1,
 	};
-	PipeManager(FDSelector *selector, char *thisPipePath, char *serviceName, Service *service, MainLoop *ml);
+	PipeManager(FDSelector *selector, char *thisPipePath, char *serviceName,
+	    Service *service, MainLoop *ml, cookai_upnp *upnp);
 	~PipeManager();
 
 	void addReadFD(int fd, size_t bufsize = 4096);
@@ -81,6 +85,7 @@ namespace NetPipe {
 	bool commit(char *portName);
 	void addTimer(int usec);
 	void exit();
+	void reconnect(char *portName);
     };
 }; /* namespace NetPipe */
 

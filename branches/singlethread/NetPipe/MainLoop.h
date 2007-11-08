@@ -51,6 +51,7 @@ namespace NetPipe {
     private:
 	FDSelector *selector;
 	cookai_upnp *upnp;
+	Acceptor *acceptor;
 
 	int dummy_count;
 	FILE *log_fp;

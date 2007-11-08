@@ -29,9 +29,12 @@
 #include "FDSelector.h"
 #include "PortWriter.h"
 #include "Service.h"
+#include "ServiceDB.h"
 #include "FDReader.h"
 #include "MainLoop.h"
 #include "ServiceTimerHandler.h"
+#include "VersionChecker.h"
+#include "upnp.h"
 
 #include "config.h"
 
@@ -44,7 +47,8 @@
 
 namespace NetPipe {
 
-    PipeManager::PipeManager(FDSelector *myselector, char *thisPipePath, char *thisServiceName, Service *serv, MainLoop *ml){
+    PipeManager::PipeManager(FDSelector *myselector, char *thisPipePath, char *thisServiceName,
+	Service *serv, MainLoop *ml, cookai_upnp *upnp){
 	if(myselector == NULL || thisPipePath == NULL || thisServiceName == NULL || serv == NULL)
 	    throw "fatal error";
 	selector = myselector;
@@ -68,6 +72,31 @@ namespace NetPipe {
 	writePortMap.clear();
 	inputSockNum = 0;
 	parent = ml;
+	this->upnp = upnp;
+    }
+
+    void PipeManager::PortClose(int sock, char *portService, char *pipePath){
+	if(sock < 0 || portService == NULL || pipePath == NULL)
+	    return;
+	StreamBuffer *buf = new StreamBuffer(256);
+	int nextPortServiceLen = (int)strlen(portService);
+	int pipePathLen = (int)strlen(pipePath);
+	//printf("PipeManager send CLOSE packet to fd:%d. size: %u, portService: %s\n",
+	//(*j)->sock,
+	//(uint32_t)(nextPortServiceLen + sizeof(char) + pipePathLen + sizeof(uint32_t) * 2),
+	//(*j)->PortService
+	//);
+
+	buf->WriteUint32((uint32_t)(nextPortServiceLen + sizeof(char) + pipePathLen + sizeof(uint32_t) * 2));
+	buf->WriteUint32(PORT_ACTION_CLOSE);
+	buf->WriteUint32(nextPortServiceLen + sizeof(char) + pipePathLen);
+	buf->WriteBinary(portService, nextPortServiceLen);
+	buf->WriteInt8('\n');
+	buf->WriteBinary(pipePath, pipePathLen);
+	PortWriter *pw = new PortWriter(sock, buf);
+	pw->setLinkDown();
+	selector->add(pw);
+	delete buf;
     }
 
     PipeManager::~PipeManager(){
@@ -78,6 +107,9 @@ namespace NetPipe {
 	    for(portServiceList::iterator j = i->second->nextPortService.begin();
 		j != i->second->nextPortService.end(); j++){
 		    if((*j)->sock >= 0 && (*j)->PortService != NULL || pipePath != NULL){
+#if 1
+			PortClose((*j)->sock, (*j)->PortService, pipePath);
+#else
 			StreamBuffer *buf = new StreamBuffer(256);
 			int nextPortServiceLen = (int)strlen((*j)->PortService);
 			int pipePathLen = (int)strlen(pipePath);
@@ -94,12 +126,13 @@ namespace NetPipe {
 			buf->WriteInt8('\n');
 			buf->WriteBinary(pipePath, pipePathLen);
 			PortWriter *pw = new PortWriter((*j)->sock, buf);
-			pw->setLinkDwon();
+			pw->setLinkDown();
 			selector->add(pw);
 			delete buf;
 			
 			//PortCloser *pc = new PortCloser((*j)->sock); // 相手が平和的に落としてくるのを待つ。
 			//selector->add(pc);
+#endif
 		    }
 		    if((*j)->PortService != NULL)
 			free((*j)->PortService);
@@ -172,7 +205,7 @@ namespace NetPipe {
 	int pipePathLen = (int)strlen(pipePath);
 //printf(" send to next portService. number of %d portService I have.\n", wp->nextPortService.size());
 	for(portServiceList::iterator i = wp->nextPortService.begin(); i != wp->nextPortService.end(); i++){
-	    PortWriter *pw = new PortWriter((*i)->sock, wp->buf);
+	    PortWriter *pw = new PortWriter((*i)->sock, wp->buf, this, service, portName);
 	    if(pw == NULL)
 		throw "no more memory.";
 
@@ -228,5 +261,63 @@ namespace NetPipe {
 	ServiceTimerHandler *sth = new ServiceTimerHandler(this, service);
 	sth->setTickTime(usec);
 	selector->add(sth);
+    }
+    void PipeManager::reconnect(char *portName){
+	WritePort *wp = writePortMap[portName];
+	ServiceDB *db = ServiceDB::getInstance();
+	if(wp == NULL || wp->buf == NULL || db == NULL)
+	    return;
+	for(portServiceList::iterator i = wp->nextPortService.begin(); i != wp->nextPortService.end(); i++){
+	    if((*i)->sock >= 0)
+		PortClose((*i)->sock, (*i)->PortService, pipePath);
+
+	    char *nextService = (*i)->PortService;
+	    nextService = strchr(nextService, ';');
+	    if(nextService == NULL)
+		continue;
+	    nextService++;
+	    db->updateServiceData(nextService);
+	    char *nextIPaddr = db->QueryIPHostName(nextService);
+	    char *nextPortName = db->QueryTCPPortName(nextService);
+	    if(nextIPaddr == NULL || nextPortName == NULL){
+		//printf("can not query nextService \"%s\". ip/port: %s:%s\n", nextService, nextIPaddr, nextPortName);
+		continue;
+	    }
+
+#if 0
+	    // UPNP をしている本人がUPNPで開いたWAN_PORTにつなぎに行くと
+	    // 失敗するルータがあるので、local に開いたportに繋ぐ
+	    char portBuf[64];
+	    if(upnp != NULL && upnp->wan_port != NULL && upnp->wan_ipaddr != NULL &&
+		strcmp(nextIPaddr, upnp->wan_ipaddr) == 0 &&
+		strcmp(nextPortName, upnp->wan_port) == 0){
+		    nextIPaddr = upnp->local_ipaddr;
+		    sprintf(portBuf, "%d", upnp->local_port);
+		    nextPortName = portBuf;
+	    }
+#endif
+	    errno = 0;
+	    int fd = connect_stream(nextIPaddr, nextPortName);
+	    if(fd < 0){
+		printf(" can not connect to nextService: %s:%s (%s)\n", nextIPaddr, nextPortName, strerror(errno));
+		continue;
+	    }
+	    StreamBuffer *buf = new StreamBuffer(32);
+	    if(buf == NULL){
+		closeSocket(fd);
+		//printf("no more memory. in PipeManager::reconnect() by create StreamBuffer\n");
+		continue;
+	    }
+	    buf->WriteBinary(NETPIPE_HELLO_STRING, strlen(NETPIPE_HELLO_STRING));
+	    PortWriter *pw = new PortWriter(fd, buf);
+	    if(pw == NULL){
+		//printf("no more memory. in PipeManager::reconnect() by create PortWriter\n");
+		closeSocket(fd);
+		delete buf;
+		continue;
+	    }
+	    selector->add(pw);
+	    (*i)->sock = fd;
+	}
     }
 }; /* namespace NetPipe */
