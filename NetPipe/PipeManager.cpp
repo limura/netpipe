@@ -41,6 +41,11 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+extern int errno;
+#endif
+
 //#ifdef HAVE_SYSLOG_H
 //#include <syslog.h>
 //#endif
@@ -175,7 +180,7 @@ namespace NetPipe {
 	ps->PortService = strdup(nextPortService);
 	if(ps->PortService == NULL)
 	    throw "no more memory";
-//	printf("  add nextPortService \"%s\" on myPort \"%s\" (fd: %d)\n", nextPortService, portName, sock);
+printf("  add nextPortService \"%s\" on myPort \"%s\" (fd: %d)\n", nextPortService, portName, sock);
 	wp->nextPortService.push_back(ps);
     }
 
@@ -296,10 +301,18 @@ namespace NetPipe {
 		    nextPortName = portBuf;
 	    }
 #endif
+#ifdef HAVE_ERRNO_H
 	    errno = 0;
+#endif
 	    int fd = connect_stream(nextIPaddr, nextPortName);
 	    if(fd < 0){
-		printf(" can not connect to nextService: %s:%s (%s)\n", nextIPaddr, nextPortName, strerror(errno));
+		printf(" can not connect to nextService: %s:%s (%s)\n", nextIPaddr, nextPortName,
+#ifdef HAVE_STRERROR
+		    strerror(errno)
+#else
+		    "unknown (sterror() not defined)"
+#endif
+		    );
 		continue;
 	    }
 	    StreamBuffer *buf = new StreamBuffer(32);

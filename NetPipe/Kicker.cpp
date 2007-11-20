@@ -146,7 +146,7 @@ CONTINUE:
 	    try {
 		while(sm->socketWrite(sock))
 		    ;
-	    }catch (StreamBufferSendError e) {
+	    }catch (StreamBufferSendError) {
 	    }
 	    closeSocket(sock);
 	}

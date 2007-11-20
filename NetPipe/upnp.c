@@ -57,7 +57,9 @@
 #endif
 #include <stdlib.h>
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -643,11 +645,13 @@ cookai_upnp *upnp_listen_stream_with_local(int port){
     char portBuf[6], *portStr, *ipaddr;
     cookai_upnp *upnp;
 
+#ifdef HAVE_GETENV
     if(getenv("UPNP_DISABLE") == NULL){
 	upnp = upnp_listen_stream(port);
 	if(upnp != NULL)
 	    return upnp;
     }
+#endif
     upnp = upnp_new();
     if(upnp == NULL)
 	return NULL;

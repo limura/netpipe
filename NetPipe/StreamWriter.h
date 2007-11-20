@@ -34,6 +34,7 @@
 #include <stdlib.h>
 
 namespace NetPipe {
+    class Service;
     class StreamWriter {
     protected:
 	int fd;
@@ -43,6 +44,7 @@ namespace NetPipe {
 	int getFD();
 	char *getName();
 	virtual bool onWrite() = 0;
+	virtual void deleteService(Service *service) = 0;
     };
 }; /* namespace NetPipe */
 

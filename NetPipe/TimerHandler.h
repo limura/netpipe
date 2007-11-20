@@ -28,7 +28,9 @@
 #ifndef NETPIPE_TIMERHANDLER_H
 #define NETPIPE_TIMERHANDLER_H
 
+#ifdef HAVE_SIGNAL_H
 #include <signal.h>
+#endif
 #include "tools.h"
 
 namespace NetPipe {

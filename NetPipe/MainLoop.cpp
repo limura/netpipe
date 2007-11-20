@@ -40,8 +40,10 @@
 #include "PortWriter.h"
 
 #include "tools.h"
+#ifdef HAVE_ERRNO_H
 #include <errno.h>
 extern int errno;
+#endif
 #include <stdio.h>
 #ifdef HAVE_PROCESS_H
 #include <process.h>
@@ -142,7 +144,7 @@ namespace NetPipe {
 	stringBuf[strLen - 1] = '\0'; // ÅŒã‚Í '\n' ‚Ì‚Í‚¸‚È‚Ì‚Å‚»‚¢‚Â‚ðã‘‚«‚µ‚Ä '\0' Terminate ‚³‚¹‚Ä‚à‚ç‚¤
 	buf += strLen;
 	size -= strLen;
-//printf("onPortRecive: header: %s", stringBuf);
+printf("onPortRecive: header:\n%s\n", stringBuf);
 
 	char *p;
 	char *inputPort;
@@ -158,7 +160,7 @@ namespace NetPipe {
 	*p = '\0';
 	p++;
 	char *serviceName = p;
-//printf("onPortRecive: serviceName: %s\n", serviceName);
+printf("onPortRecive: serviceName: %s\n", serviceName);
 
 	char *inputArg;
 	inputArg = strchr(serviceName, ' ');
@@ -274,10 +276,14 @@ namespace NetPipe {
 		    sprintf(portBuf, "%d", upnp->local_port);
 		    nextPortName = portBuf;
 		}
+#ifdef HAVE_ERRNO_H
 		errno = 0;
+#endif
 		int fd = connect_stream(nextIPaddr, nextPortName);
 		if(fd < 0){
+#ifdef HAVE_STRERROR
 		    printf(" can not connect to nextService: %s:%s (%s)\n", nextIPaddr, nextPortName, strerror(errno));
+#endif
 		    continue;
 		}
 		StreamBuffer *buf = new StreamBuffer(32);
@@ -346,6 +352,7 @@ namespace NetPipe {
 
 	for(ServiceManagerList::iterator i = serviceManagerList.begin(); i != serviceManagerList.end(); i++){
 	    (*i)->registerServiceDB(IPaddr, portStr);
+	    printf("Microservice \"%s\" starting now.\r\n", (*i)->getServiceName());
 	}
 
 	SysDataHolder *sdh = SysDataHolder::getInstance();
@@ -356,6 +363,8 @@ namespace NetPipe {
     void MainLoop::deleteActivePipe(PipeManager *pm){
 	for(string2ActivePipeMap::iterator i = activePipeMap.begin(); i != activePipeMap.end(); i++){
 	    if(i->second != NULL && i->second->pipeManager == pm){
+		Service *delService = i->second->pipeManager->service;
+		selector->deleteService(delService);
 		delete i->second->pipeManager;
 		delete i->second;
 		activePipeMap.erase(i);

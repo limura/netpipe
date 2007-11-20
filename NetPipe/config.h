@@ -73,6 +73,13 @@
 #define HAVE_SOCKLEN_T
 #define HAVE_GETPID
 #define HAVE_SYSLOG_H
+#define HAVE_SYS_TYPES_H
+#define HAVE_SYGNAL_H
+#define HAVE_ERRNO_H
+#define HAVE_STRERROR
+#undef HAVE_FINDFIRSTFILE
+#define HAVE_OPENDIR
+#undef HAVE_STRTOK_S
 
 #define USE_THREAD
 #undef HAVE_WINDOWS_H
@@ -118,6 +125,7 @@
 #define HAVE_SYS_IOCTL_H
 #define HAVE_GETPID
 #define HAVE_SYSLOG_H
+#define HAVE_SYS_TYPES_H
 
 #define HAVE_POLL_H
 #define HAVE_POLL
@@ -127,6 +135,13 @@
 #undef HAVE_WCTYPE_H
 #undef HAVE_CTYPE_H
 #define HAVE_SOCKLEN_T
+#define HAVE_SYGNAL_H
+#define HAVE_GETENV
+#define HAVE_ERRNO_H
+#define HAVE_STRERROR
+#undef HAVE_FINDFIRSTFILE
+#define HAVE_OPENDIR
+#undef HAVE_STRTOK_S
 
 #define USE_THREAD
 #undef HAVE_WINDOWS_H
@@ -177,6 +192,14 @@
 #define HAVE_SOCKLEN_T
 #define HAVE_GETPID
 #define HAVE_SYSLOG_H
+#define HAVE_SYS_TYPES_H
+#define HAVE_SYGNAL_H
+#define HAVE_GETENV
+#define HAVE_ERRNO_H
+#define HAVE_STRERROR
+#undef HAVE_FINDFIRSTFILE
+#define HAVE_OPENDIR
+#undef HAVE_STRTOK_S
 
 #define USE_THREAD
 #undef HAVE_WINDOWS_H
@@ -227,6 +250,14 @@
 #define HAVE_SOCKLEN_T
 #define HAVE_GETPID
 #define HAVE_SYSLOG_H
+#define HAVE_SYS_TYPES_H
+#define HAVE_SYGNAL_H
+#define HAVE_GETENV
+#define HAVE_ERRNO_H
+#define HAVE_STRERROR
+#undef HAVE_FINDFIRSTFILE
+#define HAVE_OPENDIR
+#undef HAVE_STRTOK_S
 
 #define USE_THREAD
 #undef HAVE_WINDOWS_H
@@ -239,7 +270,6 @@
 #if defined(_WIN32) || defined(WIN64)
 
 #define _LIBCOOKAI_WINDOWS_
-#define DEBUG
 
 #define _CRT_SECURE_NO_DEPRECATE /* for warning C4996 (_read _write _close and so on) */
 
@@ -271,7 +301,6 @@
 #define HAVE_IOCTLSOCKET
 #define HAVE_WSAGETLASTERROR
 #undef HAVE_BZERO
-#define HAVE_IO_H
 #define HAVE_WSASTARTUP
 #define HAVE_mciSendStringW
 #define HAVE_MMSYSTEM_H
@@ -291,6 +320,7 @@
 #undef HAVE_SYS_IOCTL_H
 #define HAVE_GETPID
 #undef HAVE_SYSLOG_H
+#define HAVE_ERRNO_H
 
 #define USE_THREAD
 #define HAVE_WINDOWS_H
@@ -298,12 +328,34 @@
 #define HAVE_PROCESS_H
 #undef HAVE_PTHREAD_H
 #undef HAVE_SOCKLEN_T
+#define HAVE_SYS_TYPES_H
+#define HAVE_SYGNAL_H
+#define HAVE_GETENV
+#define HAVE_IO_H
+#define HAVE_STRERROR
+#define HAVE_STRTOK_S
+#define HAVE_GETSYSTEMTIMEASFILETIME
 
 #define NSNS_NONBLOCK
 #define NSNS_NODELAY
 
 #define DLL_EXPORT __declspec(dllexport)
 #define _CRT_SECURE_NO_WARNINGS
+#define HAVE_FINDFIRSTFILE
+#undef HAVE_OPENDIR
+
+#ifdef _WIN32_WCE
+#undef HAVE_SYS_TYPES_H
+#undef HAVE_SIGNAL_H
+#undef HAVE_GETENV
+#undef HAVE_IO_H
+#undef HAVE_PROCESS_H
+#undef HAVE_ERRNO_H
+#undef HAVE_STRERROR
+#undef HAVE_GETPID
+#undef HAVE_STRTOK_S
+#undef HAVE_GETSYSTEMTIMEASFILETIME
+#endif
 
 #define strtok_r strtok_s
 #define strdup _strdup

@@ -51,6 +51,7 @@ namespace NetPipe {
 	StreamBuffer *getHeaderBuf();
 	void setLinkDown();
 	bool onWrite();
+	void deleteService(Service *service);
     };
 }; /* namespace NetPipe */
 

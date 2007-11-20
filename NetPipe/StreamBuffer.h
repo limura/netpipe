@@ -37,6 +37,7 @@
 
 namespace NetPipe {
     typedef int StreamBufferSendError;
+    typedef int StreamBufferRecvError;
     class StreamBuffer {
     private:
 	char *buf, *writeP, *readP;

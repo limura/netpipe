@@ -50,7 +50,9 @@
 #ifdef HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
 #endif
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -355,8 +357,11 @@ namespace NetPipe {
 		return false;
 	}
 	int read_length = recv(fd, writeP, (int)remain_size, 0);
-	if(read_length <= 0)
-	    return false;
+	if(read_length <= 0){
+	    StreamBufferRecvError e = 1;
+	    throw e;
+	    //return false;
+	}
 	writeP += read_length;
 	remain_size -= read_length;
 	return true;

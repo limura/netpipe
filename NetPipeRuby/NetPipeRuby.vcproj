@@ -2,9 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="NetPipe"
-	ProjectGUID="{D534E54B-7E88-4535-8FDC-E7AE67120071}"
-	RootNamespace="NetPipe"
+	Name="NetPipeRuby"
+	ProjectGUID="{57B1E3E1-2D46-4477-A7B8-0B2245851FB8}"
+	RootNamespace="NetPipeRuby"
+	Keyword="Win32Proj"
 	>
 	<Platforms>
 		<Platform
@@ -18,8 +19,8 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="2"
+			ConfigurationType="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -39,10 +40,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="..\..\NetPipe\NetPipe;..\..\ruby-src\lib\ruby\1.8\i386-mswin32"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;NETPIPERUBY_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
@@ -57,10 +60,20 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalDependencies="NetPipe.lib ws2_32.lib winmm.lib msvcrt-ruby18.lib"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\..\NetPipe\debug;..\..\ruby-src\lib"
+				ModuleDefinitionFile="module.def"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -72,6 +85,12 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -79,8 +98,8 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="2"
+			ConfigurationType="2"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -100,7 +119,10 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\NetPipe\NetPipe;..\..\ruby-src\lib\ruby\1.8\i386-mswin32"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;NETPIPERUBY_EXPORTS"
 				RuntimeLibrary="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
@@ -115,10 +137,22 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalDependencies="NetPipe.lib ws2_32.lib winmm.lib msvcrt-ruby18.lib"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\NetPipe\release;..\..\ruby-src\lib"
+				ModuleDefinitionFile="module.def"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -128,6 +162,12 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -143,27 +183,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\Acceptor.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\FDReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\FDSelector.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Kicker.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\MainLoop.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\net.c"
+				RelativePath=".\module.def"
 				>
 			</File>
 			<File
@@ -171,66 +195,14 @@
 				>
 			</File>
 			<File
-				RelativePath=".\PortReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\PortWriter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ServiceDB.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ServiceManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ServiceTimerHandler.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\StreamBuffer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\StreamReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\StreamWriter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SysDataHolder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\thread.c"
-				>
-			</File>
-			<File
-				RelativePath=".\TimerHandler.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\tools.c"
-				>
-			</File>
-			<File
-				RelativePath=".\upnp.c"
-				>
-			</File>
-			<File
-				RelativePath=".\VersionChecker.cpp"
 				>
 			</File>
 			<Filter
 				Name="Win32"
 				>
 				<File
-					RelativePath=".\Win32\Initialize.c"
+					RelativePath=".\Win32\NetPipe.cpp"
 					>
 				</File>
 			</Filter>
@@ -241,117 +213,9 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\Acceptor.h"
+				RelativePath=".\Modules.h"
 				>
 			</File>
-			<File
-				RelativePath=".\config.h"
-				>
-			</File>
-			<File
-				RelativePath=".\FDReader.h"
-				>
-			</File>
-			<File
-				RelativePath=".\FDSelector.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Kicker.h"
-				>
-			</File>
-			<File
-				RelativePath=".\MainLoop.h"
-				>
-			</File>
-			<File
-				RelativePath=".\net.h"
-				>
-			</File>
-			<File
-				RelativePath=".\NetPipe.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PipeManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PortReader.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PortWriter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Service.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ServiceCreator.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ServiceDB.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ServiceManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ServiceTimerHandler.h"
-				>
-			</File>
-			<File
-				RelativePath=".\StreamBuffer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\StreamReader.h"
-				>
-			</File>
-			<File
-				RelativePath=".\StreamWriter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SysDataHolder.h"
-				>
-			</File>
-			<File
-				RelativePath=".\thread.h"
-				>
-			</File>
-			<File
-				RelativePath=".\TimerHandler.h"
-				>
-			</File>
-			<File
-				RelativePath=".\tools.h"
-				>
-			</File>
-			<File
-				RelativePath=".\upnp.h"
-				>
-			</File>
-			<File
-				RelativePath=".\VersionChecker.h"
-				>
-			</File>
-			<Filter
-				Name="win32"
-				>
-				<File
-					RelativePath=".\Win32\Initialize.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Win32\inttypes.h"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="リソース ファイル"

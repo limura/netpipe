@@ -29,8 +29,13 @@
 #include "FDSelector.h"
 #include "tools.h"
 
+#ifdef HAVE_SIGNAL_H
 #include <signal.h>
+#endif
+#ifdef HAVE_ERRNO_H
 #include <errno.h>
+extern int errno;
+#endif
 
 namespace NetPipe {
     FDSelector::FDSelector(){
@@ -226,7 +231,9 @@ printf("TIMER delete %p\r\n", th);
 	    next_timeout = usec;
 
 	int selectRet;
+#ifdef HAVE_ERRNO_H
 	errno = 0;
+#endif
 //printf("FDSelector selecting(%d) (thlist: %d)\r\n", next_timeout, thlist.size());
 	if(usec <= 0 && next_timeout <= 0){
 	    selectRet = select(maxfd + 1, &read_fds, &write_fds, NULL, NULL);
@@ -240,29 +247,28 @@ printf("TIMER delete %p\r\n", th);
 	this->timerCheck();
 
 	if(selectRet < 0){
+#ifdef HAVE_ERRNO_H
 #ifdef EINTR
 	    if(errno == EINTR)
 		return true;
 #endif
-#ifdef EINTR
-	    if(errno == EINTR)
-		return true;
 #endif
 	    printf("select() return %d.\n", selectRet);
-	    perror("select:");
+	    //perror("select:");
 	    throw "select return error. ";
 	}
 	for(streamReaderListMap::iterator i = rlmap.begin(); selectRet > 0 && i != rlmap.end(); i++){
 	    if(i->second.size() > 0 && FD_ISSET(i->first, &read_fds)){
 		streamReaderList::iterator j = i->second.begin();
-printf("FDSelector recv: %d\r\n", i->first);
+//printf("FDSelector recv: %d\r\n", i->first);
 		try{
 		    if((*j)->onRecive() == false){
 			del(*j);
 			return true;
 		    }
 		}catch (char *){
-		    del(*j);
+		    delFD(i->first);
+		    //del(*j);
 		    return true;
 		}
 		selectRet--;
@@ -272,11 +278,11 @@ printf("FDSelector recv: %d\r\n", i->first);
 	    if(i->second.size() > 0 && FD_ISSET(i->first, &write_fds)){
 		streamWriterList::iterator j = i->second.begin();
 		streamWriterList::iterator k;
-printf("FDSelector send: %d\r\n", i->first);
+//printf("FDSelector send: %d\r\n", i->first);
 		try{
 		    if((*j)->onWrite() == false){
-			delFD(i->first);
-			//del(*j);
+			//delFD(i->first);
+			del(*j);
 			return true;
 		    }
 		}catch (char *){
@@ -288,5 +294,13 @@ printf("FDSelector send: %d\r\n", i->first);
 	    }
 	}
 	return true;
+    }
+
+    void FDSelector::deleteService(Service *targetService){
+	for(streamWriterListMap::iterator i = wlmap.begin(); i != wlmap.end(); i++){
+	    for(streamWriterList::iterator j = i->second.begin(); j != i->second.end(); j++){
+		(*j)->deleteService(targetService);
+	    }
+	}
     }
 };

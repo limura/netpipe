@@ -58,7 +58,9 @@
 #include <ws2tcpip.h>
 #endif
 #include <stdlib.h>
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -76,6 +78,7 @@ using namespace std;
 
 namespace NetPipe {
     class SysDataHolder;
+    class Service;
     class FDSelector {
 	friend class SysDataHolder;
     private:
@@ -107,6 +110,8 @@ namespace NetPipe {
 	bool delFD(int fd);
 
 	bool run(int usec);
+
+	void deleteService(Service *targetService);
     };
 
 }; /* namespace NetPipe */

@@ -27,6 +27,7 @@
 
 #include "config.h"
 #include "StreamWriter.h"
+#include "Service.h"
 
 namespace NetPipe {
     StreamWriter::StreamWriter(){
@@ -39,4 +40,8 @@ namespace NetPipe {
     int StreamWriter::getFD(){
 	return fd;
     }
+#if 0
+    void StreamWriter::deleteService(Service *service){
+    }
+#endif
 }; /* namespace NetPipe */
