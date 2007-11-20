@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: net.c 93 2007-07-06 03:33:52Z  $
+ * $Id$
  */
 
 #include "config.h"

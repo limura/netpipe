@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: VersionChecker.cpp 95 2007-07-06 07:08:18Z  $
+ * $Id$
  */
 
 #include "VersionChecker.h"

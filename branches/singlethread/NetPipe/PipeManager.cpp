@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: PipeManager.cpp 86 2007-07-05 10:55:02Z  $
+ * $Id$
  */
 
 #include "PipeManager.h"
