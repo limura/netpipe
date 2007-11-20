@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: Initialize.c 9 2007-06-06 09:02:15Z  $
+ * $Id$
  */
 
 #include <stdio.h>

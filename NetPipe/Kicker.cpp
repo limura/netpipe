@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: Kicker.cpp 66 2007-07-04 07:01:15Z  $
+ * $Id$
  */
 
 #include "config.h"

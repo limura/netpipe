@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: main.cpp 96 2007-07-08 11:46:50Z  $
+ * $Id$
  */
 
 #include <NetPipe.h>

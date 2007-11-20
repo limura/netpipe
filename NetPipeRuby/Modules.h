@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: Acceptor.cpp 51 2007-07-04 01:22:02Z  $
+ * $Id$
  */
 
 #include <ruby.h>

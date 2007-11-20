@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: StreamBuffer.cpp 34 2007-07-01 21:37:34Z  $
+ * $Id$
  */
 
 #include "StreamBuffer.h"

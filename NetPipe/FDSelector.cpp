@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: FDSelector.cpp 52 2007-07-04 01:27:20Z  $
+ * $Id$
  */
 
 #include "config.h"

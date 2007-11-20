@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: tools.c 56 2007-07-04 05:29:46Z  $
+ * $Id$
  */
 
 #include <stdio.h>

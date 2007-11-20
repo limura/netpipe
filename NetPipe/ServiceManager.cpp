@@ -22,7 +22,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: ServiceManager.cpp 69 2007-07-04 08:49:24Z  $
+ * $Id$
  */
 
 #include "config.h"
