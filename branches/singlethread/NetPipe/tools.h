@@ -35,7 +35,9 @@
 #endif
 #include <stdarg.h>
 #include <stdio.h>
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <time.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -105,6 +107,7 @@ uint32_t pop_uint32(char **src, size_t *siz);
 int bin_cmp(char *p1, char *p2, size_t siz);
 void bin_inc(unsigned char *buf, int depth);
 unsigned long long bin2ull(unsigned char *buf, int depth);
+char *strnchr(char *str, int c, size_t size);
 
 int rnd0(int max);
 int rnd1(int max);
@@ -115,6 +118,12 @@ unsigned char *vf_get_from_send_buf(unsigned char *buf, size_t bufsiz, char *fmt
 //int64_t getTime();
 #ifndef HAVE_GETTIMEOFDAY
 int gettimeofday(struct timeval *tv, struct timezone *tz);
+#endif
+
+#ifdef _WIN32_WCE
+#ifndef HAVE_STRTOK_S
+char *strtok_s(char *p, char *delim, char **context);
+#endif
 #endif
 
 #ifdef __cplusplus

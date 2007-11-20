@@ -1,0 +1,8 @@
+LIBRARY	"NetPipeRuby"
+
+DESCRIPTION "NetPipe Ruby module"
+
+VERSION 0.0
+
+EXPORTS
+	Init_NetPipe @100

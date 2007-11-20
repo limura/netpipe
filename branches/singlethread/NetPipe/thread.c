@@ -63,8 +63,13 @@ int thread_create(threadID *id, thread_func func, void *userdata){
 #ifdef HAVE_PTHREAD_H
     if(pthread_create((pthread_t *)id, NULL, (pthreadFunc)func, userdata) == 0)
 	return TRUE;
-#else defined(HAVE_PROCESS_H)
+#else
+#ifdef HAVE_PROCESS_H
     HANDLE h = (HANDLE)_beginthreadex(NULL, 0, (winThreadFunc)func, userdata, 0, NULL);
+#else
+    DWORD dw;
+    HANDLE h = CreateThread(NULL, 0, (winThreadFunc)func, userdata, 0, &dw);
+#endif
     if(h != 0){
 	id = h;
 	return TRUE;
@@ -87,8 +92,12 @@ int thread_cancel(threadID id){
 int thread_exit(){
 #ifdef HAVE_PTHREAD_H
     pthread_exit(NULL);
-#else defined(HAVE_PROCESS_H)
+#else
+#ifdef HAVE_PROCESS_H
     _endthreadex(0);
+#else
+    ExitThread(0);
+#endif
 #endif
     return FALSE;
 }

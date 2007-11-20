@@ -28,7 +28,9 @@
 #ifndef NETPIPE_SERVICETIMERHANDLER_H
 #define NETPIPE_SERVICETIMERHANDLER_H
 
+#ifdef HAVE_SIGNAL_H
 #include <signal.h>
+#endif
 #include "tools.h"
 #include "PipeManager.h"
 #include "Service.h"

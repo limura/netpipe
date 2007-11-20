@@ -120,12 +120,14 @@ namespace NetPipeDotNET {
 	}
 	NetPipe::Service *createNewService(void *userData){
 	    gcroot<NetPipeDotNET::Service ^> service = gcServiceCreator->createNewService((System::IntPtr)userData);
+	    // XXXX ‚±‚±‚Åì‚Á‚½ ServiceWrapper ‚Í‚Ç‚±‚©‚ç‚àŽQÆ‚³‚ê‚Ä‚È‚¢‚Ì‚Å GC ‚ÉŽE‚³‚ê‚È‚¢‚©H
 	    return new ServiceWrapper(service);
 	}
     };
 
     void ServiceManager::addServiceCreator(NetPipeDotNET::ServiceCreator ^serviceCreator, System::IntPtr userData){
 	ServiceCreatorWrapper *scw = new ServiceCreatorWrapper(serviceCreator);
+	// XXXX ‚±‚±‚Åì‚Á‚½ ServiceCreatorWrapper ‚Í‚Ç‚±‚©‚ç‚àŽQÆ‚³‚ê‚Ä‚È‚¢‚Ì‚Å GC ‚ÉŽE‚³‚ê‚È‚¢‚©H
 	UmServiceManager->addServiceCreator(scw, (void *)userData);
     }
     void ServiceManager::addServiceCreator(NetPipeDotNET::ServiceCreator ^serviceCreator){

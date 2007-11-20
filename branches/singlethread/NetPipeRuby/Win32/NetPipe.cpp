@@ -22,64 +22,29 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * 
- * $Id: FDReader.cpp 85 2007-07-05 10:10:05Z  $
+ * $Id: Acceptor.cpp 51 2007-07-04 01:22:02Z  $
  */
 
-#include "config.h"
-#include "FDReader.h"
-#include "Service.h"
+#include <NetPipe.h>
+#include <windows.h>
+#include <ruby.h>
 
-#include <stdlib.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifdef HAVE_IO_H
-#include <io.h>
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#endif
+#include "../Modules.h"
 
-namespace NetPipe {
-    FDReader::FDReader(int inFD, size_t size, Service *serv, PipeManager *parent){
-#ifdef _WIN32_WCE
-	throw "_WIN32_WCE have no read(2) and close(2) system call?";
-#else
-	static char name[] = "FDReader";
-	myName = name;
-	buf = (char *)malloc(size);
-	if(buf == NULL)
-	    throw "no more memory";
-	bufsize = size;
-	fd = inFD;
-	targetService = serv;
-	pipeManager = parent;
-#endif
-    }
+extern "C" {
+    void Init_NetPipe();
+}
 
-    FDReader::~FDReader(){
-#ifdef _WIN32_WCE
-	throw "_WIN32_WCE have no read(2) and close(2) system call?";
-#else
-	if(fd >= 0)
-	    close(fd);
-#endif
-    }
+void Init_NetPipe(){
+    NetPipeInit();
 
-    bool FDReader::onRecive(){
-#ifdef _WIN32_WCE
-	throw "_WIN32_WCE have no read(2) and close(2) system call?";
-#else
-	int ret = read(fd, buf, (size_t)bufsize);
-	if(ret <= 0){
-	    if(targetService != NULL)
-		targetService->onEvent(pipeManager, NULL, NULL, Service::FD_DOWN, NULL, 0);
-	    return false;
-	}
-	if(targetService != NULL)
-	    targetService->onEvent(pipeManager, NULL, NULL, Service::FD_INPUT, buf, ret);
-	return true;
-#endif
-    }
+    VALUE module = rb_define_module("NetPipe");
+    Init_MainLoop(module);
+    Init_PipeManager(module);
+    Init_ServiceManager(module);
+}
 
-}; /* namespace NetPipe */
+#pragma argsued
+int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void *lpReserved){
+    return 1;
+}

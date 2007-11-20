@@ -50,7 +50,9 @@
 #endif
 #include <stdlib.h>
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -348,7 +350,9 @@ int connect_dgram(char *remote, char *service){
 	DPRINTF(0, ("recv OK.\n"));
 
 	if(connect(s, (struct sockaddr *)&ss, len) < 0){
+#ifdef HAVE_STRERROR_H
 	    DPERROR(("connect failed"));
+#endif
 #ifdef HAVE_CLOSESOCKET
 	    closesocket((SOCKET)s);
 #else

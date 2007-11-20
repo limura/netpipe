@@ -96,7 +96,7 @@ DPRINTF(100, ("  header: %p (%d bytes), buffer: %p (%d bytes)\n",
 		delete buf;
 		buf = NULL;
 	    }
-	}catch(StreamBufferSendError e){
+	}catch(StreamBufferSendError){
 	    if(targetService != NULL){
 		targetService->onEvent(pipeManager, portName, NULL, Service::SEND_DOWN, NULL, 0);
 	    }
@@ -108,7 +108,8 @@ DPRINTF(100, ("  header: %p (%d bytes), buffer: %p (%d bytes)\n",
 		delete buf;
 		buf = NULL;
 	    }
-	    return false;
+	    throw "SendError";
+	    //return false;
 	}
 	if(headerBuf != NULL || buf != NULL)
 	    return true;
@@ -116,5 +117,10 @@ DPRINTF(100, ("  header: %p (%d bytes), buffer: %p (%d bytes)\n",
     }
     void PortWriter::setLinkDown(){
 	linkDown = true;
+    }
+
+    void PortWriter::deleteService(Service *service){
+	if(targetService == service)
+	    targetService = NULL;
     }
 };

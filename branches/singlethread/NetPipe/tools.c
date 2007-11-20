@@ -34,8 +34,12 @@
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
+#ifdef HAVE_SIGNAL_H
 #include <signal.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <time.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -75,6 +79,7 @@ int check_printlevel(int lvl){
 
 #ifdef _LIBCOOKAI_WINDOWS_
 void windprintf(char *fmt, ...){
+#ifndef _WIN32_WCE
     char buf[10240];
     //wchar_t wbuf[5120];
     va_list ap;
@@ -83,6 +88,7 @@ void windprintf(char *fmt, ...){
     va_end(ap);
     //mbstowcs(wbuf, buf, sizeof(wbuf));
     OutputDebugString(buf);
+#endif
 }
 #endif /* _LIBCOOKAI_WINDOWS_ */
 
@@ -755,6 +761,9 @@ unsigned long long bin2ull(unsigned char *buf, int depth){
 #define DELTA_EPOCH_IN_MICROSECS 11644473600000000ULL
 #endif
 int gettimeofday(struct timeval *tv, struct timezone *tz){
+#ifndef HAVE_GETSYSTEMTIMEASFILETIME
+    return -1;
+#else
     FILETIME ft;
     LARGE_INTEGER li;
     int64_t t;
@@ -770,6 +779,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz){
     tv->tv_sec = (long)(t / 1000000);
     tv->tv_usec = (long)(t % 1000000);
     return 0;
+#endif
 }
 #endif
 
@@ -789,3 +799,82 @@ int64_t getTime(){
 }
 #endif
 
+char *strnchr(char *buf, int c, size_t size){
+    char *p = buf;
+    int i;
+    if(buf == NULL || size <= 0)
+	return NULL;
+    for(i = 0; i < size; i++){
+	if(buf[i] == c)
+	    return &buf[i];
+	else if(buf[i] == '\0')
+	    return NULL;
+    }
+    return NULL;
+}
+
+#ifdef _WIN32_WCE
+#ifndef HAVE_STRTOK_S
+/* from FreeBSD */
+char *strtok_s(char *s, char *delim, char **last){
+    char *spanp;
+    int c, sc;
+    char *tok;
+
+    if (s == NULL && (s = *last) == NULL)
+    {
+        return NULL;
+    }
+
+    /*
+     * Skip (span) leading delimiters (s += strspn(s, delim), sort of).
+     */
+cont:
+    c = *s++;
+    for (spanp = (char *)delim; (sc = *spanp++) != 0; )
+    {
+        if (c == sc)
+        {
+            goto cont;
+        }
+    }
+
+    if (c == 0)         /* no non-delimiter characters */
+    {
+        *last = NULL;
+        return NULL;
+    }
+    tok = s - 1;
+
+    /*
+     * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
+     * Note that delim must have one NUL; we stop if we see that, too.
+     */
+    for (;;)
+    {
+        c = *s++;
+        spanp = (char *)delim;
+        do
+        {
+            if ((sc = *spanp++) == c)
+            {
+                if (c == 0)
+                {
+                    s = NULL;
+                }
+                else
+                {
+                    char *w = s - 1;
+                    *w = '\0';
+                }
+                *last = s;
+                return tok;
+            }
+        }
+        while (sc != 0);
+    }
+    /* NOTREACHED */
+    return NULL;
+}
+#endif
+#endif

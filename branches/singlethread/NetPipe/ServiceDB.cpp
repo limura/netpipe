@@ -28,6 +28,7 @@
 #include "config.h"
 #include "ServiceDB.h"
 #include "net.h"
+#include "tools.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -68,8 +69,10 @@ namespace NetPipe {
 	int size;
 	char *p, *p2, *p3, *http_buf = NULL;
 	char *service_map_url = STATIC_SERVICE_MAP_URL;
+#ifdef HAVE_GETENV
 	if(getenv(SERVICE_MAP_ENV) != NULL)
 	    service_map_url = getenv(SERVICE_MAP_ENV);
+#endif
 	int tryNum = 4;
 	p = NULL;
 	while(tryNum-- > 0 && (http_buf = p = HTTP_post(service_map_url, NULL, 0, NULL, &size)) == NULL)
@@ -234,8 +237,10 @@ error_retry:
 
     bool ServiceDB::Regist(char *ServiceString){
 	char *service_update_url = STATIC_SERVICE_UPDATE_URL;
+#ifdef HAVE_GETENV
 	if(getenv(SERVICE_UPDATE_ENV) != NULL)
 	    service_update_url = getenv(SERVICE_UPDATE_ENV);
+#endif
 	// XXXXX ÇøÇ·ÇÒÇ∆ëóêMÇ≈Ç´ÇΩÇ©Ç«Ç§Ç©Çå©ÇƒÇ»Ç¢
 	char *buf = NULL;
 	int tryNum = 4;
