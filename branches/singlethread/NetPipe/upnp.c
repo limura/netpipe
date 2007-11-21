@@ -647,9 +647,13 @@ cookai_upnp *upnp_listen_stream_with_local(int port){
 
 #ifdef HAVE_GETENV
     if(getenv("UPNP_DISABLE") == NULL){
+#endif
+#if 0
 	upnp = upnp_listen_stream(port);
 	if(upnp != NULL)
 	    return upnp;
+#endif
+#ifdef HAVE_GETENV
     }
 #endif
     upnp = upnp_new();
