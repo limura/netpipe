@@ -195,7 +195,7 @@ namespace NetPipe {
 	int64_t min, tmpi64;
 	timerHandlerList::iterator i;
     TimerCheck_Start:
-	min = 999999999999UL;
+	min = 999999999UL;
 	for(i = thlist.begin(); i != thlist.end(); i++){
 	    tmpi64 = (*(i))->diffTimeout(&tv);
 	    if(tmpi64 <= 0){
