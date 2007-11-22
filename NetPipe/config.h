@@ -208,7 +208,7 @@
 #define DLL_EXPORT /* */
 #endif
 
-#ifdef __sunos
+#ifdef __sun
 #undef HAVE_SHA_H
 #undef HAVE_OPENSSL_SHA_H
 #define HAVE_SHA1_H
