@@ -208,6 +208,67 @@
 #define DLL_EXPORT /* */
 #endif
 
+#ifdef __sunos
+#undef HAVE_SHA_H
+#undef HAVE_OPENSSL_SHA_H
+#define HAVE_SHA1_H
+#define HAVE_SHA1INIT
+#undef HAVE_SHA_CTX
+#define HAVE_STDINT_H
+#define HAVE_SYS_TIME_H
+#define HAVE_UNISTD_H
+#define HAVE_INTTYPES_H
+#define HAVE_SYS_TIME_H
+#define HAVE_NETDB_H
+#define HAVE_SYS_SOCKET_H
+#define HAVE_NETINET_IN_H
+#define HAVE_ARPA_INET_H
+#define HAVE_SYS_RESOURCE_H
+#define HAVE_FD_SET
+#undef HAVE_WINSOCK2_H
+#define HAVE_BZERO
+#define HAVE_GETTIMEOFDAY
+#undef HAVE_TIMEGETTIME
+#define HAVE_SNPRINTF
+#define HAVE_NETINET_TCP_H
+#define HAVE_DEV_RANDOM
+#define HAVE_RANDOM
+#define HAVE_TIME
+#define HAVE_RUSAGE
+#undef HAVE_WS2TCPIP_H
+#undef HAVE_CLOSESOCKET
+#define HAVE_FCNTL
+#define HAVE_BZERO
+#undef HAVE_IO_H
+#undef HAVE__READ
+#undef HAVE__SNPRINTF
+#define HAVE_POLL_H
+#define HAVE_POLL
+#define HAVE_SYS_SELECT_H
+#define HAVE_SELECT
+#undef HAVE_WSASOCKET
+#define HAVE_SYS_SOCKIO_H
+#define HAVE_WCTYPE_H
+#define HAVE_CTYPE_H
+#define HAVE_SYS_IOCTL_H
+#define HAVE_SOCKLEN_T
+#define HAVE_GETPID
+#define HAVE_SYSLOG_H
+#define HAVE_SYS_TYPES_H
+#define HAVE_SYGNAL_H
+#define HAVE_ERRNO_H
+#define HAVE_STRERROR
+#undef HAVE_FINDFIRSTFILE
+#define HAVE_OPENDIR
+#undef HAVE_STRTOK_S
+
+#define USE_THREAD
+#undef HAVE_WINDOWS_H
+#define HAVE_PTHREAD_H
+
+#define DLL_EXPORT /* */
+#endif
+
 #ifdef __APPLE__ /* for MacOS X */
 #define HAVE_STDINT_H
 #define HAVE_OPENSSL_SHA_H
