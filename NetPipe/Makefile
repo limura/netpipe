@@ -20,7 +20,7 @@
  # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  # SUCH DAMAGE.
- # $Id: Makefile 57 2007-07-04 05:58:41Z  $
+ # $Id$
 
 CPP = g++
 CC = gcc
@@ -32,7 +32,7 @@ SRCS += Kicker.cpp PortWriter.cpp StreamReader.cpp
 SRCS += MainLoop.cpp ServiceDB.cpp StreamWriter.cpp
 SRCS += FDReader.cpp ServiceManager.cpp
 SRCS += FDSelector.cpp PipeManager.cpp SysDataHolder.cpp
-SRCS += VersionChecker.cpp
+SRCS += VersionChecker.cpp TimerHandler.cpp ServiceTimerHandler.cpp
 CSRCS = net.c tools.c upnp.c
 
 TARGET = libNetPipe.a
