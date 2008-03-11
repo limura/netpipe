@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2007-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@ namespace NetPipe {
 	Kicker();
 	~Kicker();
 
-	void kick(char *NetPipePathString);
+	void kick(char *NetPipePathString, char *CircuitID = NULL);
     };
 }; /* namespace NetPipe */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2007-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,6 +45,28 @@ namespace NetPipe {
     }
     ServiceDB::~ServiceDB(){
 	clearCache();
+    }
+
+    std::string ServiceDB::getSearchString(char *serviceName){
+	std::string searchID("");
+	if(serviceName == NULL)
+	    return searchID;
+
+	char *serviceType = serviceName;
+	char *serviceAtom = strchr(serviceName, ':');
+	if(serviceAtom == NULL)
+	    return searchID;
+	serviceAtom++;
+	char *searchStr = strchr(serviceAtom, ':');
+	if(searchStr == NULL)
+	    return searchID;
+	searchStr++;
+
+	searchID.append(serviceType, serviceAtom - serviceType - 1);
+	searchID.append(":");
+	searchID.append(searchStr);
+
+	return searchID;
     }
 
     void ServiceDB::clearCache(){
@@ -142,12 +164,19 @@ error_retry:
     }
 
     ServiceDB::Service *ServiceDB::updateServiceData(char *serviceName){
-	char *urlBuf[1024];
 	int size;
-	if(serviceName == NULL || strlen(serviceName) + strlen(STATIC_SERVICE_MAP_URL) + 2 > sizeof(urlBuf))
+	char *service_map_url = STATIC_SERVICE_MAP_URL;
+	std::string searchStr = getSearchString(serviceName);
+	if(searchStr.length() <= 0)
 	    return NULL;
-	sprintf((char *)urlBuf, "%s?%s", STATIC_SERVICE_MAP_URL, serviceName);
-	char *httpReply = HTTP_post((char *)urlBuf, NULL, 0, NULL, &size);
+#ifdef HAVE_GETENV
+	if(getenv(SERVICE_MAP_ENV) != NULL)
+	    service_map_url = getenv(SERVICE_MAP_ENV);
+#endif
+	std::string urlBuf(service_map_url);
+	urlBuf.append("?");
+	urlBuf.append(searchStr);
+	char *httpReply = HTTP_post((char *)urlBuf.c_str(), NULL, 0, NULL, &size);
 	if(httpReply == NULL)
 	    return NULL;
 	char *ok200 = strstr(httpReply, " 200 OK\r\n");

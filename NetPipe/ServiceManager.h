@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 20076 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2007-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -76,6 +76,7 @@ namespace NetPipe {
 	} Timer;
 
 	char *serviceName;
+	char *serviceTag;
 	ServiceCreator *creator;
 	void *creatorUserData;
 
@@ -93,7 +94,7 @@ namespace NetPipe {
 	void registFDSelector(FDSelector *selector);
 
     public:
-	ServiceManager(char *serviceName);
+	ServiceManager(char *serviceName, char *tag = "");
 	~ServiceManager();
 	char *getServiceName();
 

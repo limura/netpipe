@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2004 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2003-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,6 +53,9 @@
 #endif
 #ifdef HAVE_WINSOCK2_H
 #include <winsock2.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
 #endif
 
 #ifdef __cplusplus

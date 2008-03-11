@@ -14,7 +14,7 @@ uint32_t ヘッダのバイト数
 ユーザデータ
 
 で、ヘッダの中身は '\n' でセパレートされた文字列で、。
-InPort;ServiceName
+CircuitID;InPort;ServiceName
 ServiceName;OutPort;InPort;ServiceName
 ServiceName;OutPort;InPort;ServiceName
 ServiceName;OutPort;InPort;ServiceName
@@ -23,7 +23,8 @@ ServiceName;OutPort;InPort;ServiceName
 ServiceName;OutPort;InPort;ServiceName
 ServiceName;OutPort;InPort;ServiceName
 というようになっている。(なってなきゃ駄目)
-一番上の行は、そのデータ列を受け取った相手のServiceNameとInPortNameが指定されている。
+一番上の行は、そのUbiCircuitの個体識別IDと、
+そのデータ列を受け取った相手のServiceNameとInPortNameが指定されている。
 これが無いと複数入力のサービスの場合どのサービスに接続に来たのかがわからない。
 (逆に言うと送ってきた相手が誰であるかを認識せずに、自分の受けるべきポートだけを把握する)
 二番目の行からはそれぞれのサービスの出力ポートとその出力ポートに対する入力ポートの対。

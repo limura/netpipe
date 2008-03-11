@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2007-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,8 +39,8 @@
 #define STATIC_SERVICE_MAP_URL "http://nazca.naist.wide.ad.jp/s/s.cgi"
 #define STATIC_SERVICE_UPDATE_URL "http://nazca.naist.wide.ad.jp/s/s.cgi"
 #else
-#define STATIC_SERVICE_MAP_URL "http://uirou.no-ip.org/s/s.cgi"
-#define STATIC_SERVICE_UPDATE_URL "http://uirou.no-ip.org/s/s.cgi"
+#define STATIC_SERVICE_MAP_URL "http://uirou.no-ip.org/s/s2.cgi"
+#define STATIC_SERVICE_UPDATE_URL "http://uirou.no-ip.org/s/s2.cgi"
 #endif
 
 namespace NetPipe {
@@ -56,6 +56,8 @@ namespace NetPipe {
 	void refreshServiceData();
 	ServiceDB();
 	void clearCache();
+
+	std::string getSearchString(char *serviceName);
     public:
 	~ServiceDB();
 	static ServiceDB *getInstance();
