@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2007-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -72,6 +72,10 @@ namespace NetPipe {
 	void openAcceptPort();
 	bool onPortRecive(char *buf, size_t size);
 	void deleteActivePipe(PipeManager *pm);
+
+	std::string getRegisterID(char *serviceName, char *circuitID);
+	ActivePipe *getActivePipe(char *serviceName, char *circuitID);
+	void setActivePipe(char *serviceName, char *circuitID, ActivePipe *ap);
     public:
 	MainLoop();
 	virtual ~MainLoop();

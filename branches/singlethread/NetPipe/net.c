@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2004 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2003-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -72,6 +72,7 @@
  *    sock = connect_stream("www.example.com", "80");
  */
 int connect_stream(char *remote, char *service){
+#ifdef HAVE_GETADDRINFO
     struct addrinfo hints, *res, *res0;
     int s;
 
@@ -116,8 +117,43 @@ int connect_stream(char *remote, char *service){
     freeaddrinfo(res0);
 
     return s;
+#else /* not HAVE_GETADDRINFO use IPv4 only */
+    struct hostent *myhost;
+    unsigned int sock;
+    struct sockaddr_in sockadd;
+    int port;
+    char *p;
+
+    if(service == NULL || remote == NULL)
+	return -1;
+    port = 0;
+    for(p = service; *p != '\0'; p++){
+	if(*p < '0' || *p > '9')
+	    continue;
+	port = port * 10 + (*p - '0');
+    }
+
+    if((myhost = gethostbyname(remote)) == NULL){
+	return -1;
+    }
+
+    if((sock = socket(AF_INET,SOCK_STREAM,0)) < 0){
+	return -1;
+    }
+
+    sockadd.sin_family = AF_INET;
+    sockadd.sin_port = port;
+    memcpy(&sockadd.sin_addr,myhost->h_addr_list[0],myhost->h_length);
+    if(connect(sock,&sockadd,sizeof(sockadd)) < 0){
+	close(sock);
+	return -1;
+    }
+
+    return (sock);
+#endif /* HAVE_GETADDRINFO */
 }
 
+#ifdef HAVE_GETADDRINFO
 static int bind_any(int sock, int type, char *service){
     struct addrinfo hints, *res, *res0;
     int ret;
@@ -151,12 +187,17 @@ static int bind_any(int sock, int type, char *service){
 
     return ret;
 }
+#endif /* HAVE_GETADDRINFO */
 
 static int bind_inaddr_any(int sock, int type, int port){
-    struct sockaddr_storage ss;
     struct sockaddr_in *sockadd;
-    struct sockaddr_in6 *sockadd6;
     size_t sa_size;
+#ifdef HAVE_SOCKADDR_STORAGE
+    struct sockaddr_storage ss;
+    struct sockaddr_in6 *sockadd6;
+#else
+    struct sockaddr_in ss;
+#endif
 
     switch(type){
     case AF_INET:
@@ -167,6 +208,7 @@ static int bind_inaddr_any(int sock, int type, int port){
 
 	sa_size = sizeof(struct sockaddr_in);
 	break;
+#ifdef HAVE_SOCKADDR_STORAGE
     case AF_INET6:
 	sockadd6 = (struct sockaddr_in6 *)&ss;
 	sockadd6->sin6_family = type;
@@ -175,6 +217,7 @@ static int bind_inaddr_any(int sock, int type, int port){
 
 	sa_size = sizeof(struct sockaddr_in6);
 	break;
+#endif
     default:
 	return -1;
 	break;
@@ -263,6 +306,7 @@ int bind_dgram(char *port, int type){
     return sock;
 }
 
+#ifdef HAVE_GETADDRINFO
 /*
  * ex.
  *    sock = connect_datagram("www.example.com", "8472");
@@ -427,6 +471,7 @@ int accept_dgram(int sock, struct sockaddr *r_sa, socklen_t *r_len){
 
     return new_sock;
 }
+#endif /* HAVE_GETADDRINFO */
 
 void closeSocket(int sock){
 #ifdef _LIBCOOKAI_WINDOWS_
@@ -475,7 +520,7 @@ char *ip4sock2LocalAddr(int sock){
 #endif
     i = sizeof(sin);
     if(getsockname(sock, (struct sockaddr *)&sin, &i) == 0){
-#if 1
+#ifdef HAVE_GETNAMEINFO
 	static char host[1024], port[1024];
 	getnameinfo((struct sockaddr *)&sin, i, host, sizeof(host),
 		    port, sizeof(port), NI_NUMERICHOST|NI_NUMERICSERV);
@@ -513,7 +558,10 @@ int HTTP_connect(char *url, char **file){
 	}else{
 		if(p2 != NULL && p2 < p){
 			port = "80";
-			p = p2;
+			p = p2 + 1;
+			memcpy(hostBuf, url, p2 - url);
+			hostBuf[p2 - url] = '\0';
+			host = hostBuf;
 		}else{
 			memcpy(hostBuf, host, p - host);
 			hostBuf[p - host] = '\0';
@@ -536,7 +584,6 @@ int HTTP_connect(char *url, char **file){
 	}
 	if(file != NULL)
 		*file = p;
-
 	return connect_stream(host, port);
 }
 
@@ -545,7 +592,7 @@ int HTTP_connect(char *url, char **file){
  * 返り値は読み込んだバッファそのもの(ヘッダも入ってる) size_return bytes だけのデータが入ってる。
  * 返されたバッファが NULL でなかったら受け取った側が free() しなければならない。*/
 char *HTTP_post(char *url, char *postData, size_t postLen, char *header, int *size_return){
-	char sendBuf[10240];
+	char sendBuf[4096];
 	char *retBuf = NULL;
 	size_t retBufSize = 0;
 	char *p;
@@ -570,8 +617,10 @@ char *HTTP_post(char *url, char *postData, size_t postLen, char *header, int *si
 	sendBuf[0] = '0';
 	if(postLen > 0)
 		strncpy(sendBuf, "POST /", sizeof(sendBuf));
-	else
+	else{
 		strncpy(sendBuf, "GET /", sizeof(sendBuf));
+		postData = NULL;
+	}
 	strncat(sendBuf, file, sizeof(sendBuf));
 	strncat(sendBuf, " HTTP/1.0\r\n", sizeof(sendBuf));
 	if(header != NULL)
@@ -595,16 +644,12 @@ char *HTTP_post(char *url, char *postData, size_t postLen, char *header, int *si
 
 	strncat(sendBuf, "\r\n", sizeof(sendBuf));
 	sendLen = strlen(sendBuf);
-	if(postLen > 0 && postData != NULL){
-		if(sizeof(sendBuf) < sendLen + postLen){
-			closeSocket(sock);
-			return NULL;
-		}
-		memcpy(&sendBuf[sendLen], postData, postLen);
-		sendLen += postLen;
-	}
 
-	if(send(sock, sendBuf, (int)strlen(sendBuf), 0) < 0){
+	if(send(sock, sendBuf, sendLen, 0) < 0){
+		closeSocket(sock);
+		return NULL;
+	}
+	if(postLen > 0 && send(sock, postData, postLen, 0) < 0){
 		closeSocket(sock);
 		return NULL;
 	}

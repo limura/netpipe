@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2007-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,6 +24,8 @@
  * 
  * $Id$
  */
+
+#include <string>
 
 #include "config.h"
 #include "MainLoop.h"
@@ -111,6 +113,45 @@ namespace NetPipe {
 	selector->add(pr);
     }
 
+    std::string MainLoop::getRegisterID(char *serviceName, char *circuitID){
+	std::string id("");
+	if(serviceName == NULL || circuitID == NULL)
+	    return id;
+
+	char *serviceNameWithUniqueID, *searchStr, *p;
+	serviceNameWithUniqueID = serviceName;
+	p = strchr(serviceNameWithUniqueID, ':');
+	if(p == NULL)
+	    return id;
+	searchStr = strchr(p, ':');
+	if(searchStr == NULL)
+	    return NULL;
+	*searchStr = '\0';
+	searchStr++;
+
+	id.append(circuitID);
+	id.append(":");
+	id.append(serviceNameWithUniqueID);
+	searchStr[-1] = ':';
+
+	return id;
+    }
+
+    MainLoop::ActivePipe *MainLoop::getActivePipe(char *serviceName, char *circuitID){
+	std::string id = getRegisterID(serviceName, circuitID);
+	if(id.length() > 0)
+	    return activePipeMap[id];
+	return NULL;
+    }
+    void MainLoop::setActivePipe(char *serviceName, char *circuitID, MainLoop::ActivePipe *ap){
+	if(serviceName == NULL || circuitID == NULL || ap == NULL)
+	    return;
+	std::string id = getRegisterID(serviceName, circuitID);
+	if(id.length() > 0){
+	    activePipeMap[id] = ap;
+	}
+    }
+
     bool MainLoop::onPortRecive(char *buf, size_t size){
 	if(log_fp != NULL){
 //	    SysDataHolder *sdr = SysDataHolder::getInstance();
@@ -147,29 +188,31 @@ namespace NetPipe {
 printf("onPortRecive: header:\n%s\n", stringBuf);
 
 	char *p;
-	char *inputPort;
-	inputPort = stringBuf;
-	p = strchr(inputPort, '\n');
+	char *circuitID;
+	circuitID = stringBuf;
+	p = strchr(circuitID, '\n');
 	if(p == NULL)
 	    return false;
 	*p = '\0';
 	char *pipePath = p + 1;
+
+	char *inputPort;
+	p = strchr(circuitID, ';');
+	if(p == NULL)
+	    return false;
+	*p = '\0';
+	inputPort = p + 1;
 	p = strchr(inputPort, ';');
 	if(p == NULL)
 	    return false;
 	*p = '\0';
 	p++;
 	char *serviceName = p;
-printf("onPortRecive: serviceName: %s\n", serviceName);
+printf("onPortRecive: circuitID, inputPort, serviceName: %s, %s, %s\n", circuitID, inputPort, serviceName);
 
-	char *inputArg;
-	inputArg = strchr(serviceName, ' ');
-	if(inputArg != NULL){
-	    inputArg++;
-	}
-
-//	ActivePipe *ap = activePipeMap[pipePath];
-	ActivePipe *ap = activePipeMap[serviceName];
+	//ActivePipe *ap = activePipeMap[pipePath];
+	//ActivePipe *ap = activePipeMap[serviceName];
+	ActivePipe *ap = getActivePipe(serviceName, circuitID);
 	if(ap == NULL){ // サービスの新しいインスタンスを作らないといかん
 //printf("check action: %d <-> %d\n", action, PipeManager::PORT_ACTION_CLOSE);
 	    if(action == PipeManager::PORT_ACTION_CLOSE)
@@ -177,9 +220,13 @@ printf("onPortRecive: serviceName: %s\n", serviceName);
 //printf("check passed.\n");
 	    for(ServiceManagerList::iterator i = serviceManagerList.begin(); i != serviceManagerList.end(); i++){
 		char *name = (*i)->getServiceName();
-		if(inputArg != NULL)
-		    inputArg[-1] = '\0';
-		if(name != NULL && *name == *serviceName && strcmp(name, serviceName) == 0){
+		if(name == NULL)
+		    break;
+		int nameLen = strlen(name);
+		if(*name == *serviceName
+		    && strlen(serviceName) > nameLen
+		    && serviceName[nameLen] == ':'
+		    && strncmp(name, serviceName, nameLen) == 0){
 		    ap = new ActivePipe();
 		    if(ap == NULL)
 			throw "no more memory";
@@ -190,10 +237,9 @@ printf("onPortRecive: serviceName: %s\n", serviceName);
 		    if(ap->pipeManager == NULL)
 			throw "no more memory";
 		    (*i)->registReadFDInput(ap->pipeManager);
-		    if(inputArg != NULL)
-			inputArg[-1] = ' ';
 //		    activePipeMap[pipePath] = ap;
-		    activePipeMap[serviceName] = ap;
+		    //activePipeMap[serviceName] = ap;
+		    setActivePipe(serviceName, circuitID, ap);
 		    ap->service->onEvent(ap->pipeManager, NULL, NULL, Service::CREATED, NULL, 0);
 		    connectToNextPort(ap->pipeManager, serviceName, pipePath);
 		    break;
@@ -211,10 +257,19 @@ printf("onPortRecive: serviceName: %s\n", serviceName);
 	}
 //printf("onPortRecive: port incliment.\n");
 	ap->pipeManager->inclimentInputPort();
-	if(inputArg != NULL)
-	    inputArg[-1] = '\0';
-	if(ap != NULL && ap->service != NULL)
+	if(ap != NULL && ap->service != NULL){
+	    char *inputArg, *p;
+	    p = strchr(serviceName, ':');
+	    if(p == NULL)
+		return true;
+	    inputArg = strchr(serviceName, ' ');
+	    if(inputArg != NULL){
+		inputArg++;
+		*p = '\0';
+	    }
 	    ap->service->onEvent(ap->pipeManager, inputPort, inputArg, Service::RECV, buf, size);
+	    *p = ':';
+	}
 	return true;
     }
 

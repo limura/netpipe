@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2007-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,6 +35,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef HAVE_PROCESS_H
+#include <process.h>
+#endif
 
 #include <map>
 #include <string>
@@ -46,11 +49,24 @@ namespace NetPipe {
     Kicker::~Kicker(){
     }
 
-    void Kicker::kick(char *NetPipePathString){
+    void Kicker::kick(char *NetPipePathString, char *CircuitID){
 	ServiceDB *db = ServiceDB::getInstance();
+	char CircuitIDBuf[32];
 	char *buf;
 	if(NetPipePathString == NULL)
 	    return;
+	if(CircuitID == NULL){
+	    CircuitID = CircuitIDBuf;
+	    snprintf(CircuitIDBuf, sizeof(CircuitIDBuf) - 1, "CID%04d",
+		0
+#ifdef HAVE_TIME
+		+ time(NULL)
+#endif
+#ifdef HAVE_GETPID
+		+ getpid()
+#endif
+		);
+	}
 	int NetPipePathStringLen = (int)strlen(NetPipePathString);
 
 	if(NetPipePathString[NetPipePathStringLen - 1] != '\n'){
@@ -127,7 +143,8 @@ CONTINUE:
 	    if(sock < 0)
 		continue;
 
-	    int size = NetPipePathStringLen + (int)sizeof(uint32_t) * 2 + (int)strlen(targetService) + 3 + (int)strlen(targetPort);
+	    int size = NetPipePathStringLen + (int)sizeof(uint32_t) * 2 + (int)strlen(targetService) + 3 + (int)strlen(targetPort)
+		+ (int)strlen(CircuitID) + 1;
 	    StreamBuffer *sm = new StreamBuffer(size + sizeof(uint32_t));
 	    if(sm == NULL)
 		throw "no more memory";
@@ -136,6 +153,8 @@ CONTINUE:
 	    sm->WriteUint32(size);
 	    sm->WriteUint32(0);
 	    sm->WriteUint32(size - sizeof(uint32_t) * 2);
+	    sm->WriteBinary(CircuitID, strlen(CircuitID));
+	    sm->WriteUint8(';');
 	    sm->WriteBinary(targetPort, strlen(targetPort));
 	    sm->WriteUint8(';');
 	    sm->WriteBinary(targetService, strlen(targetService));

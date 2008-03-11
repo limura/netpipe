@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2004 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2003-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,18 +49,20 @@ extern "C" {
 
 int connect_stream(char *remote, char *service);
 int connect_stream_nonblock(char *remote, char *service);
-int connect_dgram(char *remote, char *remote_service);
 int bind_any_stream(int sock, char *service);
 int listen_stream(char *port, int type);
+#ifdef HAVE_GETADDRINFO
+int connect_dgram(char *remote, char *remote_service);
+#if 0
+int accept_dgram(int sock, struct sockaddr *r_sa, socklen_t *r_len);
+#endif
+#endif
 int bind_dgram(char *port, int type);
 void closeSocket(int sock);
 char *getGlobalIP4Addr(void);
 char *ip4sock2LocalAddr(int sock);
 int HTTP_connect(char *url, char **file);
 char *HTTP_post(char *url, char *postData, size_t postLen, char *header, int *size_return);
-#if 0
-int accept_dgram(int sock, struct sockaddr *r_sa, socklen_t *r_len);
-#endif
 
 #ifdef __cplusplus
 }

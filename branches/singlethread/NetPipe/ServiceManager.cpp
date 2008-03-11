@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2007-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,6 +25,8 @@
  * $Id$
  */
 
+#include <string>
+
 #include "config.h"
 #include "ServiceManager.h"
 #include "FDSelector.h"
@@ -38,12 +40,19 @@
 
 namespace NetPipe {
     
-    ServiceManager::ServiceManager(char *name){
+    ServiceManager::ServiceManager(char *name, char *tag){
 	if(name == NULL)
 	    throw "undefined service name. ";
 	serviceName = strdup(name);
 	if(serviceName == NULL)
 	    throw "no more memory. ";
+	if(tag == NULL)
+	    tag = "";
+	serviceTag = strdup(tag);
+	if(serviceTag == NULL){
+	    free(serviceName);
+	    throw "no more memory.";
+	}
 	creator = NULL;
 	creatorUserData = NULL;
     }
@@ -51,6 +60,10 @@ namespace NetPipe {
 	if(serviceName != NULL){
 	    free(serviceName);
 	    serviceName = NULL;
+	}
+	if(serviceTag != NULL){
+	    free(serviceTag);
+	    serviceTag = NULL;
 	}
     }
     char *ServiceManager::getServiceName(){
@@ -124,47 +137,64 @@ namespace NetPipe {
     }
 
     void ServiceManager::registerServiceDB(char *IPaddr, char *TCPPort){
-	char ServiceString[10240];
+	std::string str("");
 	/*
 	 * i\tServiceName\tInputPortName\tInputPortName\tInputPortName...
 	 * o\tServiceName\tOutputPortName\tOutputPortName\tOutputPortName...
-	 * p\tInputPortName:ServiceName\tIPAddr\tTCPPortString
+	 * p\tInputPortName:ServiceName\tIPAddr\tTCPPortString\tTag...
 	 */
 	if(IPaddr == NULL || TCPPort == NULL)
 	    throw "IPAddr == NULL || TCPPort == NULL";
 
-	ServiceString[0] = '\0';
-
 	if(readPortMap.size() > 0){
-	    strncat(ServiceString, "i\t", sizeof(ServiceString));
-	    strncat(ServiceString, serviceName, sizeof(ServiceString));
+	    //strncat(ServiceString, "i\t", sizeof(ServiceString));
+	    //strncat(ServiceString, serviceName, sizeof(ServiceString));
+	    str.append("i\t");
+	    str.append(serviceName);
 	    for(ReadPortMap::iterator i = readPortMap.begin(); i != readPortMap.end(); i++){
-		strncat(ServiceString, "\t", sizeof(ServiceString));
-		strncat(ServiceString, i->second->portName, sizeof(ServiceString));
+		//strncat(ServiceString, "\t", sizeof(ServiceString));
+		//strncat(ServiceString, i->second->portName, sizeof(ServiceString));
+		str.append("\t");
+		str.append(i->second->portName);
 	    }
-	    strncat(ServiceString, "\n", sizeof(ServiceString));
+	    //strncat(ServiceString, "\n", sizeof(ServiceString));
+	    str.append("\n");
 	}
 
 	if(writePortMap.size() > 0){
-	    strncat(ServiceString, "o\t", sizeof(ServiceString));
-	    strncat(ServiceString, serviceName, sizeof(ServiceString));
+	    //strncat(ServiceString, "o\t", sizeof(ServiceString));
+	    //strncat(ServiceString, serviceName, sizeof(ServiceString));
+	    str.append("o\t");
+	    str.append(serviceName);
 	    for(WritePortMap::iterator i = writePortMap.begin(); i != writePortMap.end(); i++){
-		strncat(ServiceString, "\t", sizeof(ServiceString));
-		strncat(ServiceString, i->second->portName, sizeof(ServiceString));
+		//strncat(ServiceString, "\t", sizeof(ServiceString));
+		//strncat(ServiceString, i->second->portName, sizeof(ServiceString));
+		str.append("\t");
+		str.append(i->second->portName);
 	    }
-	    strncat(ServiceString, "\n", sizeof(ServiceString));
+	    //strncat(ServiceString, "\n", sizeof(ServiceString));
+	    str.append("\n");
 	}
 
-	strncat(ServiceString, "p\t", sizeof(ServiceString));
-	strncat(ServiceString, serviceName, sizeof(ServiceString));
-	strncat(ServiceString, "\t", sizeof(ServiceString));
-	strncat(ServiceString, IPaddr, sizeof(ServiceString));
-	strncat(ServiceString, "\t", sizeof(ServiceString));
-	strncat(ServiceString, TCPPort, sizeof(ServiceString));
-	strncat(ServiceString, "\n", sizeof(ServiceString));
+	//strncat(ServiceString, "p\t", sizeof(ServiceString));
+	//strncat(ServiceString, serviceName, sizeof(ServiceString));
+	//strncat(ServiceString, "\t", sizeof(ServiceString));
+	//strncat(ServiceString, IPaddr, sizeof(ServiceString));
+	//strncat(ServiceString, "\t", sizeof(ServiceString));
+	//strncat(ServiceString, TCPPort, sizeof(ServiceString));
+	//strncat(ServiceString, "\t", sizeof(ServiceString));
+	//strncat(ServiceString, serviceTag, sizeof(ServiceString));
+	//strncat(ServiceString, "\n", sizeof(ServiceString));
+	str.append("p\t"); str.append(serviceName);
+	str.append("\t"); str.append(IPaddr);
+	str.append("\t"); str.append(TCPPort);
+	str.append("\t"); str.append(serviceTag);
+	str.append("\n");
 
-	if(ServiceString[0] != '\0')
-	    ServiceDB::getInstance()->Regist(ServiceString);
+	//if(ServiceString[0] != '\0')
+	    //ServiceDB::getInstance()->Regist(ServiceString);
+	if(str.length() > 0)
+	    ServiceDB::getInstance()->Regist((char *)str.c_str());
     }
 
     void ServiceManager::registFDSelector(NetPipe::FDSelector *selector){

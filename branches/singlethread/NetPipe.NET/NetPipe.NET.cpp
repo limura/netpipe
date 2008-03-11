@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 IIMURA Takuji. All rights reserved.
+ * Copyright (c) 2007-2008 IIMURA Takuji. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -67,12 +67,15 @@ namespace NetPipeDotNET {
     Kicker::!Kicker(){
 	if(original != NULL)
 	    delete original;
+	original = NULL;
     }
 
-    void Kicker::kick(System::String ^pipePath){
+    void Kicker::kick(System::String ^pipePath, System::String ^CircuitID){
 	if(original != NULL){
 	    char *mStr = static_cast<char*>((System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(pipePath)).ToPointer());static_cast<const char*>((System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(pipePath)).ToPointer());
-	    original->kick(mStr);
+	    char *cStr = static_cast<char*>((System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(CircuitID)).ToPointer());static_cast<const char*>((System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(CircuitID)).ToPointer());
+	    original->kick(mStr, cStr);
+	    System::Runtime::InteropServices::Marshal::FreeHGlobal(System::IntPtr((void *)cStr));
 	    System::Runtime::InteropServices::Marshal::FreeHGlobal(System::IntPtr((void *)mStr));
 	}
     }

@@ -63,6 +63,7 @@
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(TargetDir)&quot;"
 				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				TargetMachine="1"
