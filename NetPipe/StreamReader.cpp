@@ -35,6 +35,10 @@ namespace NetPipe {
 	fd = -1;
 	myName = NULL;
     }
+    StreamReader::~StreamReader(){
+	fd = -1;
+	myName = NULL;
+    }
 
     char *StreamReader::getName(){
 	return myName;

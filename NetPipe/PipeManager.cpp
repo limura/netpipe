@@ -244,6 +244,7 @@ printf("  add nextPortService \"%s\" on myPort \"%s\" (fd: %d)\n", nextPortServi
 	inputSockNum--;
 	if(inputSockNum <= 0 && service != NULL){
 	    inputSockNum = 0;
+#if 0
 	    char *p = strchr(portName, ' ');
 	    if(p != NULL){
 		*p = '\0';
@@ -252,6 +253,9 @@ printf("  add nextPortService \"%s\" on myPort \"%s\" (fd: %d)\n", nextPortServi
 	    service->onEvent(this, portName, p, Service::RECV_DOWN, NULL, 0);
 	    if(p != NULL)
 		p[-1] = ' ';
+#else
+	    service->onEvent(this, serviceName, NULL, Service::RECV_DOWN, NULL, 0);
+#endif
 	}
     }
 

@@ -60,8 +60,8 @@ namespace NetPipe {
     }
 
     PortReader::~PortReader(){
-	if(fd >= 0)
-	    closeSocket(fd);
+	//if(fd >= 0)
+	//    closeSocket(fd);
 	fd = -1;
 	parent = NULL;
     }

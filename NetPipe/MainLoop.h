@@ -38,16 +38,21 @@
 #include <string>
 
 namespace NetPipe {
-    class PortReader;
     class SysDataHolder;
     class PipeManager;
+    class PortReader;
+    class PortWriter;
     class VersionChecker;
+    class HTTPReader;
+    class HTTPHeader;
+
     class MainLoop : public AcceptEventHandler {
 	friend class Acceptor;
-	friend class PortReader;
 	friend class SysDataHolder;
 	friend class PipeManager;
+	friend class PortReader;
 	friend class VersionChecker;
+	friend class HTTPReader;
     private:
 	FDSelector *selector;
 	cookai_upnp *upnp;
@@ -72,10 +77,17 @@ namespace NetPipe {
 	void openAcceptPort();
 	bool onPortRecive(char *buf, size_t size);
 	void deleteActivePipe(PipeManager *pm);
+	bool onHttpRecive(char *buf, size_t size, HTTPHeader header, int sock);
+	void onHttpEof(HTTPHeader header);
 
 	std::string getRegisterID(char *serviceName, char *circuitID);
 	ActivePipe *getActivePipe(char *serviceName, char *circuitID);
 	void setActivePipe(char *serviceName, char *circuitID, ActivePipe *ap);
+	PortWriter *sendMsg(char *msg, size_t size, int sock);
+	void sendAndClose(char *msg, size_t size, int sock);
+	std::string createHttpRequestHeader(std::string url, std::string circuit,
+	    std::string inputPort, std::string inputArg, std::string serviceArg);
+
     public:
 	MainLoop();
 	virtual ~MainLoop();

@@ -813,6 +813,24 @@ char *strnchr(char *buf, int c, size_t size){
     return NULL;
 }
 
+#ifndef HAVE_STRNSTR
+char *strnstr(char *big, char *little, size_t size){
+    char *p = big;
+    int i, littleLen;
+    if(big == NULL || little == NULL || size <= 0)
+	return NULL;
+    littleLen = strlen(little);
+    for(i = 0; i < size; i++){
+	if(big[i] == little[0] && size - i >= littleLen && strncmp(&big[i], little, littleLen) == 0){
+	    return &big[i];
+	}else if(big[i] == '\0'){
+	    return NULL;
+	}
+    }
+    return NULL;
+}
+#endif
+
 #ifdef _WIN32_WCE
 #ifndef HAVE_STRTOK_S
 /* from FreeBSD */

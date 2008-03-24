@@ -147,11 +147,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CPPTools.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\FDReader.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\FDSelector.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\HTTPReader.cpp"
 				>
 			</File>
 			<File
@@ -219,6 +227,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\UbiCircuitCircuit.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\UbiCircuitHeader.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\upnp.c"
 				>
 			</File>
@@ -249,11 +265,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CPPTools.h"
+				>
+			</File>
+			<File
 				RelativePath=".\FDReader.h"
 				>
 			</File>
 			<File
 				RelativePath=".\FDSelector.h"
+				>
+			</File>
+			<File
+				RelativePath=".\HTTPReader.h"
 				>
 			</File>
 			<File
@@ -330,6 +354,14 @@
 			</File>
 			<File
 				RelativePath=".\tools.h"
+				>
+			</File>
+			<File
+				RelativePath=".\UbiCircuitCircuit.h"
+				>
+			</File>
+			<File
+				RelativePath=".\UbiCircuitHeader.h"
 				>
 			</File>
 			<File
