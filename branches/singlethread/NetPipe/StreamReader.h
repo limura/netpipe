@@ -37,6 +37,7 @@ namespace NetPipe {
 
     public:
 	StreamReader();
+	virtual ~StreamReader();
 	int getFD();
 	char *getName();
 

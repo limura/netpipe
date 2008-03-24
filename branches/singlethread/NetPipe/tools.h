@@ -111,6 +111,9 @@ int bin_cmp(char *p1, char *p2, size_t siz);
 void bin_inc(unsigned char *buf, int depth);
 unsigned long long bin2ull(unsigned char *buf, int depth);
 char *strnchr(char *str, int c, size_t size);
+#ifndef HAVE_STRNSTR
+char *strnstr(char *big, char *little, size_t size);
+#endif
 
 int rnd0(int max);
 int rnd1(int max);

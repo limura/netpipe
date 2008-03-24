@@ -40,6 +40,9 @@
 #include "SysDataHolder.h"
 #include "VersionChecker.h"
 #include "PortWriter.h"
+#include "HTTPReader.h"
+#include "CPPTools.h"
+#include "UbiCircuitHeader.h"
 
 #include "tools.h"
 #ifdef HAVE_ERRNO_H
@@ -100,10 +103,17 @@ namespace NetPipe {
     }
 
     void MainLoop::onAccept(int sock){
+#if 1
+	HTTPReader *reader = new HTTPReader(this, sock);
+	if(reader == NULL)
+	    throw "no more memory.";
+	selector->add(reader);
+#else
 	VersionChecker *vc = new VersionChecker(this, sock);
 	if(vc == NULL)
 	    throw "no more memory.";
 	selector->add(vc);
+#endif
     }
 
     void MainLoop::onAcceptValidConnection(int sock){
@@ -150,6 +160,109 @@ namespace NetPipe {
 	if(id.length() > 0){
 	    activePipeMap[id] = ap;
 	}
+    }
+
+    void MainLoop::onHttpEof(HTTPHeader header){
+	HTTPHeader::headerMap::iterator circuit = header.headers.find("x-ubicircuit-circuit");
+	if(circuit != header.headers.end()){
+	    ActivePipe *ap = getActivePipe((char *)header.request_uri.c_str(), (char *)circuit->second.c_str());
+	    if(ap != NULL)
+		ap->pipeManager->declimentInputPort(NULL);
+	}
+    }
+
+    PortWriter *MainLoop::sendMsg(char *msg, size_t size, int sock){
+	StreamBuffer *buf = new StreamBuffer(size);
+	if(buf == NULL)
+	    return NULL;
+	buf->WriteBinary(msg, strlen(msg));
+	PortWriter *pw = new PortWriter(sock, buf);
+	if(pw == NULL){
+	    delete buf;
+	    return NULL;
+	}
+	selector->add(pw);
+	return pw;
+    }
+
+    void MainLoop::sendAndClose(char *msg, size_t size, int sock){
+	PortWriter *pw = sendMsg(msg, size, sock);
+	if(pw == NULL){
+	    closeSocket(sock);
+	    return;
+	}
+	pw->setLinkDown();
+    }
+
+    bool MainLoop::onHttpRecive(char *buf, size_t size, HTTPHeader header, int sock){
+	UbiCircuitHeader ubiHeader(header);
+
+	if(buf != NULL && size > 0 && ubiHeader.isValidData()){
+	    ActivePipe *ap = getActivePipe((char *)ubiHeader.getServiceName().c_str(), (char *)ubiHeader.getCircuit().c_str());
+	    if(ap == NULL){
+		for(ServiceManagerList::iterator smi = serviceManagerList.begin(); smi != serviceManagerList.end(); smi++){
+		    char *name = (*smi)->getServiceName();
+		    if(name == NULL || ubiHeader.getServiceName() != name)
+			continue;
+
+		    ap = new ActivePipe();
+		    if(ap == NULL)
+			throw "no more memory";
+		    ap->service = (*smi)->createNewService();
+		    if(ap->service == NULL)
+			throw "can not create new service instance.";
+		    ap->pipeManager = new PipeManager(selector, (char *)ubiHeader.getCircuit().c_str(),
+			(char *)ubiHeader.getServiceName().c_str(), ap->service, this, upnp);
+		    if(ap->pipeManager == NULL)
+			throw "no more memory";
+		    (*smi)->registReadFDInput(ap->pipeManager);
+//		    activePipeMap[pipePath] = ap;
+		    //activePipeMap[serviceName] = ap;
+		    setActivePipe((char *)ubiHeader.getServiceName().c_str(), (char *)ubiHeader.getCircuit().c_str(), ap);
+		    ap->service->onEvent(ap->pipeManager, NULL, NULL, Service::CREATED, NULL, 0);
+		    connectToNextPort(ap->pipeManager, (char *)ubiHeader.getServiceName().c_str(), (char *)ubiHeader.getCircuit().c_str());
+		    break;
+		}
+		if(ap == NULL){ // not found valid MicroService
+		    char *msg = "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n"
+			"Connection: close\r\n\r\nYour requested MicroService is not found.";
+		    sendAndClose(msg, strlen(msg), sock);
+		    return false;
+		}else{
+#if 0 // 正常なUbiCircuitの接続の場合、受け側からはエラーがあったときしか返事をしない
+		    char *msg = "HTTP/1.1 200 OK\r\n\r\n";
+		    if(sendMsg(msg, strlen(msg), sock) == NULL){
+			closeSocket(sock);
+			retrun false;
+		    }
+#endif
+		}
+	    }
+
+	    if(ap != NULL && ap->service != NULL){
+#if 0
+		char *inputArg, *p;
+		p = strchr(serviceName, ':');
+		if(p == NULL)
+		    return true;
+		inputArg = strchr(serviceName, ' '); // XXXX arg に関してはちょっと pending
+		if(inputArg != NULL){
+		    inputArg++;
+		    *p = '\0';
+		}
+#endif
+		ap->service->onEvent(ap->pipeManager, (char *)ubiHeader.getServiceName().c_str(), NULL, Service::RECV, buf, size);
+#if 0
+		*p = ':';
+#endif
+	    }
+	    return true;
+	}
+
+	char *msg = "HTTP/1.1 501 Not Implemented\r\nContent-Type: text/plain\r\n"
+	    "Connection: close\r\n\r\nNot Implemented yet.";
+	sendAndClose(msg, strlen(msg), sock);
+	return false;
     }
 
     bool MainLoop::onPortRecive(char *buf, size_t size){
@@ -272,10 +385,106 @@ printf("onPortRecive: circuitID, inputPort, serviceName: %s, %s, %s\n", circuitI
 	}
 	return true;
     }
+    std::string MainLoop::createHttpRequestHeader(std::string url, std::string circuit,
+	std::string inputPort, std::string inputArg, std::string serviceArg){
+	/* example header
+	POST /service/<<ServiceName>> HTTP/1.0
+	Transfer-Encoding: chunked
+	X-UbiCircuit-Circuit: <<Circuit>>
+	X-UbiCircuit-InputPort: <<PortName>>
+	X-UbiCircuit-InputArg: <<Argument>>
+	X-UbiCircuit-ServiceArg: <<Argument>>
+	*/
+
+	std::string buf("POST ");
+	buf += url;
+	buf += " HTTP/1.1\r\n"
+	    "Transfer-Encoding: chunked\r\n"
+	    "X-UbiCircuit-Circuit: ";
+	buf += circuit;
+	buf += "\r\n"
+	    "X-UbiCircuit-InputPort: ";
+	buf += inputPort;
+	if(inputArg.size() > 0){
+	    buf += "\r\n"
+		"X-UbiCircuit-InputArg: ";
+	    buf += inputArg;
+	}
+	if(serviceArg.size() > 0){
+	    buf += "\r\n"
+		"X-UbiCircuit-ServiceArg: ";
+	    buf += inputArg;
+	}
+	buf += "\r\n\r\n";
+	return buf;
+    }
 
     void MainLoop::connectToNextPort(PipeManager *pm, char *serviceName, char *pipePath){
 	if(pm == NULL || serviceName == NULL || pipePath == NULL)
 	    return;
+#if 1
+	char *separator[] = { ";", NULL };
+	CPPTool::stringList *services = NULL;
+	services = CPPTool::split(pipePath, strlen(pipePath), separator);
+	if(services == NULL || services->size() % 2 == 1 || services->size() < 2)
+	    return;
+	ServiceDB *db = ServiceDB::getInstance();
+	CPPTool::stringList::iterator sli = services->begin();
+	bool skip = true;
+	std::string from;
+	for(; sli != services->end(); sli++){
+	    if(skip){
+		skip = false;
+		from = (*sli);
+		continue;
+	    }
+	    skip = true;
+	    if(from == serviceName){ // XXXX 検索文字列 == serviceName としているが、これだと変だと思う
+		char *url = db->QueryValue((*sli).c_str());
+		char *file = NULL;
+		int fd = HTTP_connect(url, &file);
+		if(fd < 0){
+#ifdef HAVE_STRERROR
+		    printf(" can not connect to nextService: %s (%s)\n", url, strerror(errno));
+#endif
+		    continue;
+		}
+		if(*file == NULL){
+		    closeSocket(fd);
+		    continue;
+		}
+		StreamBuffer *buf = new StreamBuffer(32);
+		if(buf == NULL){
+		    closeSocket(fd);
+//printf("no more memory. in MainLoop::ConnecToNextPort() by create StreamBuffer\n");
+		    continue;
+		}
+		char *msg = "POST ";
+		buf->WriteBinary(msg, strlen(msg));
+		buf->WriteBinary(msg, *file);
+		msg = " HTTP/1.1\r\n"
+		    UBICIRCUIT_HTTP_HEADER_FIELD ": " UBICIRCUIT_HTTP_HEADER_FIELD_VERSION "\r\n"
+		    "Transfer-Encoding: chunked\r\n"
+		    "X-UbiCircuit-Circuit: ";
+		buf->WriteBinary(msg, strlen(msg));
+		buf->WriteBinary(pipePath, strlen(pipePath));
+		msg = "\r\n\r\n";
+		buf->WriteBinary(msg, strlen(msg));
+
+		PortWriter *pw = new PortWriter(fd, buf);
+		if(pw == NULL){
+//printf("no more memory. in MainLoop::ConnecToNextPort() by create PortWriter\n");
+		    closeSocket(fd);
+		    delete buf;
+		    continue;
+		}
+		selector->add(pw);
+//printf("nextPortService %s (%s:%s) connected.\npm->addWritePort outPort: %s, fd: %d\n",
+//       nextPortService, nextIPaddr, nextPortName, outPort, fd);
+		pm->addWritePort(outPort, fd, nextPortService); // XXXX 出力ポートを識別することができない？
+	    }
+	}
+#else
 	int serviceNameLen = (int)strlen(serviceName);
 	ServiceDB *db = ServiceDB::getInstance();
 	char *p, *pp = pipePath;
@@ -361,6 +570,7 @@ printf("onPortRecive: circuitID, inputPort, serviceName: %s, %s, %s\n", circuitI
 		pm->addWritePort(outPort, fd, nextPortService);
 	    }
 	}
+#endif
     }
 
     void MainLoop::openAcceptPort(){

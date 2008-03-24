@@ -33,6 +33,7 @@ SRCS += MainLoop.cpp ServiceDB.cpp StreamWriter.cpp
 SRCS += FDReader.cpp ServiceManager.cpp
 SRCS += FDSelector.cpp PipeManager.cpp SysDataHolder.cpp
 SRCS += VersionChecker.cpp TimerHandler.cpp ServiceTimerHandler.cpp
+SRCS += HTTPReader.cpp CPPTools.cpp
 CSRCS = net.c tools.c upnp.c
 
 TARGET = libNetPipe.a

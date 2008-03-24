@@ -61,6 +61,11 @@
 #endif
 #include <string.h>
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+extern int errno;
+#endif
+
 #include "net.h"
 #include "tools.h"
 
@@ -584,6 +589,9 @@ int HTTP_connect(char *url, char **file){
 	}
 	if(file != NULL)
 		*file = p;
+#ifdef HAVE_ERRNO_H
+	errno = 0;
+#endif
 	return connect_stream(host, port);
 }
 

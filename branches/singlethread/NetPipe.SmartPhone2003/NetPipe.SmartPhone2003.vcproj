@@ -544,11 +544,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\NetPipe\CPPTools.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\NetPipe\FDReader.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\NetPipe\FDSelector.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\NetPipe\HTTPReader.cpp"
 				>
 			</File>
 			<File
@@ -654,11 +662,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\NetPipe\CPPTools.h"
+				>
+			</File>
+			<File
 				RelativePath="..\NetPipe\FDReader.h"
 				>
 			</File>
 			<File
 				RelativePath="..\NetPipe\FDSelector.h"
+				>
+			</File>
+			<File
+				RelativePath="..\NetPipe\HTTPReader.h"
 				>
 			</File>
 			<File
